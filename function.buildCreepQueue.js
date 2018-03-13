@@ -59,7 +59,7 @@ module.exports = {
                     roomLayout=basicRoomLayout;
                 }
                 else if  (roomType=="claimRoom") {
-                    roomLayout={"miner":1,"energyHauler":3,"claimer":1}
+                    roomLayout={"miner":1,"energyHauler":2,"claimer":1}
                     if (bodyLayout["claimer"].length<3){
                         roomLayout["claimer"]+=1;
                     }

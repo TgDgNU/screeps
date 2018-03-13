@@ -8,8 +8,8 @@ var findEnergyFromMemory = {
         }
 
         temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity})
-
-        if temp.length>0 {
+        console.log(temp)
+        if (temp.length)>0 {
             [closestSourceId,closestSourceIdType]=creep.pos.findClosestByPath(temp.map( roomEnergyObject=> [Game.getObjectById(roomEnergyObject[0]),Game.getObjectById(roomEnergyObject[2])])).id;
             return [closestSourceId,closestSourceIdType]
         }

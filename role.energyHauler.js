@@ -14,7 +14,7 @@ var roleEnergyHauler = {
         else if (!creep.memory.working){
             if (!creep.memory.closestSourceId){
                 resultArray=findEnergyFromMemory.run(creep);
-                if (!resultArray){
+                if (!resultArray{
                     console.log("Creep "+creep.name+" can't find energy in room "+creep.room.name)
                     findEnergy.run(creep)
                 }

@@ -15,10 +15,10 @@ var findEnergyFromMemory = {
         if (temp.length>0) {
             //[closestSourceId,closestSourceIdType]=creep.pos.findClosestByPath(temp.map( roomEnergyObject=> [Game.getObjectById(roomEnergyObject[0]),Game.getObjectById(roomEnergyObject[2])])).id;
             closestSourceId=creep.pos.findClosestByPath(temp.map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2]))).id;
-            console.log("####")
-            console.log("found source id "+closestSourceId);
-            console.log(Memory.rooms[creep.room.name]["roomEnergyArray"])
-            console.log("####")
+            //console.log("####")
+            //console.log("found source id "+closestSourceId);
+            //console.log(Memory.rooms[creep.room.name]["roomEnergyArray"])
+            //console.log("####")
             for (let i in Memory.rooms[creep.room.name]["roomEnergyArray"]){
                 if (Memory.rooms[creep.room.name]["roomEnergyArray"][i][2]==closestSourceId){
                     closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0]

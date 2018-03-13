@@ -27,6 +27,11 @@ var roleEnergyHauler = {
                             creep.moveTo(Game.getObjectById(energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
                         }
                     }
+                    else if (energySourceType=="droppedEnergy"){
+                        if (creep.pickup(Game.getObjectById(energySourceId) == ERR_NOT_IN_RANGE)){
+                            creep.moveTo(Game.getObjectById(energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
+                        }
+                    }
                 }
             }
 

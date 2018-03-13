@@ -9,7 +9,7 @@ var findEnergyFromMemory = {
 
         temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity})
         for (i in temp){
-            console.log(temp[i][2]);
+            console.log("filtered "+temp[i][2]);
         }
         console.log(temp)
         if (temp.length>0) {

@@ -12,29 +12,23 @@ var roleEnergyHauler = {
             creep.moveTo(new RoomPosition(25, 20, creep.memory.claim),{reusePath: 50});
         }
         else if (!creep.memory.working){
-            if (!creep.memory.closestSourceId){
-                resultArray=findEnergyFromMemory.run(creep);
-                if (!resultArray){
-                    console.log("Creep "+creep.name+" can't find energy in room "+creep.room.name)
-                    findEnergy.run(creep)
-                }
-                else{
-                    energySourceId=resultArray[0];
-                    energySourceType=resultArray[1];
-
-                    if (energySourceType=="storage" || energySourceType=="container") {
-                        if (creep.withdraw(Game.getObjectById(energySourceId) == ERR_NOT_IN_RANGE)){
-                            creep.moveTo(Game.getObjectById(energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
-                        }
-                    }
-                    else if (energySourceType=="droppedEnergy"){
-                        let result=creep.pickup(Game.getObjectById(energySourceId);
-                        console.log("Try to harvest energy "+result)
-                        if (result == ERR_NOT_IN_RANGE)){
-                            creep.moveTo(Game.getObjectById(energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
-                        }
+            if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
+                if (creep.memory.energySourceType=="storage" || creep.memory.energySourceType=="container") {
+                    if (creep.withdraw(Game.getObjectById(creep.memory.energySourceId) == ERR_NOT_IN_RANGE)){
+                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
                     }
                 }
+                else if (creep.memory.energySourceType=="droppedEnergy"){
+                    let result=creep.pickup(Game.getObjectById(creep.memory.energySourceId);
+                    console.log("Try to harvest energy "+result)
+                    if (result == ERR_NOT_IN_RANGE){
+                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
+                    }
+                }
+            }
+            else{
+                console.log("Creep "+creep.name+" can't find energy in room "+creep.room.name)
+                   findEnergy.run(creep)
             }
 
             creep.say("Energy!");
@@ -72,10 +66,11 @@ var roleEnergyHauler = {
         // if out of energy > go gather some
         if( creep.carry.energy == 0) {
             creep.memory.working=false;
-            creep.memory.closestSourceId=null;
+
         }
         if( creep.carry.energy == creep.carryCapacity) {
             creep.memory.working=true;
+            creep.memory.energySourceId=null;
         }
     }
 };

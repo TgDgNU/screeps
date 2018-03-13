@@ -18,13 +18,16 @@ var findEnergyFromMemory = {
             for (let i in Memory.rooms[creep.room.name]["roomEnergyArray"]){
                 if (Memory.rooms[creep.room.name]["roomEnergyArray"][i][2]==closestSourceId){
                     closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0]
+                    Memory.rooms[creep.room.name]["roomEnergyArray"][i][1]-=creep.carryCapacity;
                 }
             }
             //console.log(_.findIndex(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyArrayItem) {roomEnergyArrayItem[2]==closestSourceId}))
             //closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][_.findIndex(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyArrayItem) {roomEnergyArrayItem[2]==closestSourceId})]
             //closestSourceIdType="temp"
-            console.log(closestSourceId+" "+closestSourceIdType)
-            return [closestSourceId,closestSourceIdType]
+            creep.memory.energySourceId=closestSourceId];
+            creep.memory.energySourceType=closestSourceIdType;
+
+            return (true)
         }
         else {
             return (false)

@@ -18,6 +18,7 @@ module.exports.loop = function () {
 
     if (Game.time%10===0){
         for (let rName in Game.rooms){
+<<<<<<< HEAD
             let res=processRoom.findEnergy(rName);
             if (!(rName in Memory.rooms)){
                 Memory.rooms[rName]={}
@@ -28,6 +29,9 @@ module.exports.loop = function () {
             else {
                 Game.notify("Error processing room "+rName)
             }
+=======
+            processRoom(rName);
+>>>>>>> parent of 8148856... upd_tested
         }
     }
 

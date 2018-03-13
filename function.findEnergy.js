@@ -66,8 +66,7 @@ var findEnergy = {
                     if (source_storage) {
                         creep.say("storage");
                         if(creep.withdraw(source_storage,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(source_storage, {visualizePathStyle: {stroke: '#ffaa00'}});
-                        }
+                            creep.moveTo(source_storage, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 50});}
                     }
                 }
                 else if (creep.memory.role!="energyHauler") {
@@ -90,8 +89,7 @@ var findEnergy = {
             else if (bestpath==2) {
                             creep.say("f "+Math.max(...range_array));
                             if(creep.withdraw(source_container_full,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(source_container_full, {visualizePathStyle: {stroke: '#ffaa00'}});
-                            }
+                                creep.moveTo(source_container_full, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 50});}
             }
     }
 };

@@ -11,12 +11,17 @@ var createClaimParty = require('function.createClaimParty');
 var processCreepQueue = require('function.processCreepQueue');
 var buildCreepQueue=require('function.buildCreepQueue');
 var lib=require('function.libraries');
-
+var processRoom=require('function.processRoom');
 
 module.exports.loop = function () {
-    
-var flagWar=false;
-//var goToWar="E9S18";
+
+
+    if (Game.time%10===0){
+        for (let rName in Game.rooms){
+            processRoom(rName);
+        }
+    }
+
 
 for (let rName in Game.rooms){
     if (!(rName in Memory.rooms)){
@@ -36,6 +41,8 @@ for (let rName in Game.rooms){
     }
 
 }
+
+
 
 if (Game.time%3===0) {
     for (let rName in Game.rooms){

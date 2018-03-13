@@ -18,16 +18,7 @@ module.exports.loop = function () {
 
     if (Game.time%10===0){
         for (let rName in Game.rooms){
-            let res=processRoom.findEnergy(rName);
-            if (!(rName in Memory.rooms)){
-                Memory.rooms[rName]={}
-            }
-            if (res!=null){
-                Memory.rooms[rName]["roomEnergyArray"]=res;
-            }
-            else {
-                Game.notify("Error processing room "+rName)
-            }
+            processRoom.findEnergy(rName);
         }
     }
 
@@ -53,39 +44,42 @@ for (let rName in Game.rooms){
 
 
 
-    if (Game.time%3===0) {
-        // AntiInvader
-        for (let rName in Game.rooms){
-            let spawnName=lib.findSpawn(rName)[0]
-            if(spawnName && Game.rooms[rName].find(FIND_HOSTILE_CREEPS,{filter : cr => cr.owner.username=="Invader"}).length>0) {
-                if ((!(Memory.rooms[rName]["spawnedDefenderTime"]) || ((Game.time-Memory.rooms[rName]["spawnedDefenderTime"])>1300))) {
-                    let bodyLayout={};
-                    bodyLayout["warbot"]=[MOVE,ATTACK];
-                    for (let i=1;i<=(Math.round(Game.spawns[lib.findSpawn(rName)[0]].room.energyCapacityAvailable-130)/130);i++) {
-                        bodyLayout["warbot"]=bodyLayout["warbot"].concat([MOVE,ATTACK]);
-                    }
-                    Game.spawns[spawnName].memory.creepQueue.push({body:bodyLayout["warbot"],role:"warbot",priority:50,claim:rName})
+if (Game.time%3===0) {
+    for (let rName in Game.rooms){
+        if(lib.findSpawn(rName) && Game.rooms[rName].find(FIND_HOSTILE_CREEPS).length>0) {
+            Game.notify("Enemies in "+rName)
+            if ((!(Memory.rooms[rName]["spawnedDefenderTime"]) || ((Game.time-Memory.rooms[rName]["spawnedDefenderTime"])>1000))) {
+                Game.notify("Spawning defenders ")
+                let bodyLayout={};
+                bodyLayout["warbot"]=[MOVE,ATTACK];
+                for (let i=1;i<=(Math.round(Game.spawns[lib.findSpawn(rName)[0]].room.energyCapacityAvailable-130)/130);i++) {
+                    bodyLayout["warbot"]=bodyLayout["warbot"].concat([MOVE,ATTACK]);
+                }
+                if (rName!="E8S17"){
+                    Game.spawns[lib.findSpawn(rName)[0]].memory.creepQueue.push({body:bodyLayout["warbot"],role:"warbot",priority:50,claim:rName})
                     Game.notify("Spawned warbot to battle in room "+rName);
                     Memory.rooms[rName]["spawnedDefenderTime"]=Game.time;
-                    Game.notify("Left on queue for "+spawnName);
-                    for (let id in Game.spawns[spawnName].memory.creepQueue){
-                        Game.notify(lib.showCreep(Game.spawns[spawnName].memory.creepQueue[id],"compact"));
-
+                    for (let id in Game.spawns[lib.findSpawn(rName)[0]].memory.creepQueue){
+                        Game.notify(lib.showCreep(Game.spawns[lib.findSpawn(rName)[0]].memory.creepQueue[id],"compact"));
                     }
+                    
                 }
             }
-        }
-        // Process Creep Queue
-        for (let spawnName in Game.spawns) {
-            if (!Game.spawns[spawnName].spawning && Game.spawns[spawnName].memory.creepQueue.length>0) {
-                processCreepQueue.run(spawnName);
-            }
+            //Game.spawns[lib.findSpawn(rName)[0]].memory.creepQueue.unshift({body:bodyLayout["warbot"],role:"warbot",priority:priority[role],energy_source:energySource,claim:roomName})
+            
         }
     }
+    for (let spawnName in Game.spawns) {
+        if (!Game.spawns[spawnName].spawning && Game.spawns[spawnName].memory.creepQueue.length>0) {
+            processCreepQueue.run(spawnName);
+        }
+    }
+}
 
 
-    // scout for rooms that are claimed but not visible
-    if ((Game.time % 3000) === 0) {
+
+    if ((Game.time % 1500) === 0) {
+        console.log("Scouting non-visible rooms")
         for (let spawnName in Game.spawns){
             let spawn=Game.spawns[spawnName];
             for (let claimRoom in spawn.memory.claim){
@@ -98,8 +92,8 @@ for (let rName in Game.rooms){
     }
 
 
-// every 300 ticks check if energy source (with free space near it) is mined correctly. If not - spawn additional creep.
-if ((Game.time % 300) === 0) {
+// every 50 ticks check if energy source (with free space near it) is mined correctly. If not - spawn additional creep.
+if ((Game.time % 150) === 0) {
     for (let spawnName in Game.spawns){
         let spawn=Game.spawns[spawnName];
         let roomName=Game.spawns[spawnName].room.name;
@@ -107,8 +101,8 @@ if ((Game.time % 300) === 0) {
         energySources=Game.rooms[roomName].find(FIND_SOURCES)
         for (let energySourceID in energySources){
             if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&
-                (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
-                ((energySources[energySourceID].ticksToRegeneration+20)/300)){
+                    (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
+                        ((energySources[energySourceID].ticksToRegeneration+20)/300)){
                 Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:10,energy_source:energySourceID})
                 Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10,energy_source:energySourceID})
                 console.log("Spawning additional creep for energy source "+energySourceID);
@@ -119,26 +113,29 @@ if ((Game.time % 300) === 0) {
         fullContainers=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_CONTAINER && s.store.energy>(s.storeCapacity*0.8)})
         if (fullContainers.length>0){
             console.log("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10})
-
+            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10})    
         }
-        console.log("Checking for full storage");
-        fullStorage=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE && s.store.energy>(s.storeCapacity*0.7)})
-        if (fullStorage.length>0){
-            Game.notify("<font color=green>Spawning additional SUPER upgrader for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"upgrader",priority:30})
-
-        }
-        //if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&
-        //        (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
-        //            ((energySources[energySourceID].ticksToRegeneration+20)/300)){
-        //    Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10,energy_source:energySourceID})
-        //    console.log("Spawning additional creep for energy source "+energySourceID);
-        //}
-
+            //if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&
+            //        (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
+            //            ((energySources[energySourceID].ticksToRegeneration+20)/300)){
+            //    Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10,energy_source:energySourceID})
+            //    console.log("Spawning additional creep for energy source "+energySourceID);
+            //}
+        
     }
 }
 
+//if (Game.time%300==0){
+//    Game.spawns["Spawn1"].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:11,claim:"E8S19",energy_source:0 })  
+//    Game.spawns["Spawn1"].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:11,claim:"E8S19",energy_source:1 }) 
+//}
+
+//for (creepID in Game.creeps){
+//    if (Game.creeps[creepID].room.name=="E8S19") {
+//        Game.creeps[creepID].memory.claim="E7S18";
+//        
+//    }
+//}
 
 // Quick monitoring to console
 if ((Game.time % 50) === 0) {

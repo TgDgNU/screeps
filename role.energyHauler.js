@@ -28,7 +28,9 @@ var roleEnergyHauler = {
                         }
                     }
                     else if (energySourceType=="droppedEnergy"){
-                        if (creep.pickup(Game.getObjectById(energySourceId) == ERR_NOT_IN_RANGE)){
+                        let result=creep.pickup(Game.getObjectById(energySourceId);
+                        console.log("Try to harvest energy "+result)
+                        if (result == ERR_NOT_IN_RANGE)){
                             creep.moveTo(Game.getObjectById(energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
                         }
                     }

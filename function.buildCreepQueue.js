@@ -7,10 +7,13 @@ module.exports = {
         var basicBodyLayout=[MOVE,WORK,CARRY];
         var priority={"harvester":35,"upgrader":25,"builder":30,"miner":34,"energyHauler":32,"scout":20,"warbot":55,"claimer":33}
                 
-        
+
         
         roomLayout=basicRoomLayout;
         var spawnName=lib.findSpawn(roomName)[0];
+        if (!Game.spawns[spawnName].memory.creepQueue){
+            Game.spawns[spawnName].memory.creepQueue=[];
+        }
         //var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable
         var energyForBuild=1300;
         //no building for unclaimed rooms

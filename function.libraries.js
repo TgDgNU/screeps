@@ -35,7 +35,7 @@ module.exports = {
                 }
             }
         }
-        return(null);
+        return([null,null]);
     },
     
     constructCreep : function(spawnName,role,subroleArray) {

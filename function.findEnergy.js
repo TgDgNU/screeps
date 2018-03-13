@@ -91,6 +91,7 @@ var findEnergy = {
                             if(creep.withdraw(source_container_full,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(source_container_full, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 50});}
             }
+            return true;
     }
 };
 

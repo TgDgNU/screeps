@@ -18,7 +18,7 @@ module.exports.loop = function () {
 
     if (Game.time%10===0){
         for (let rName in Game.rooms){
-            processRoom(rName);
+            processRoom.findEnergy(rName);
         }
     }
 

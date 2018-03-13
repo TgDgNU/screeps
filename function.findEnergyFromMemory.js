@@ -24,7 +24,7 @@ var findEnergyFromMemory = {
             //console.log(_.findIndex(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyArrayItem) {roomEnergyArrayItem[2]==closestSourceId}))
             //closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][_.findIndex(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyArrayItem) {roomEnergyArrayItem[2]==closestSourceId})]
             //closestSourceIdType="temp"
-            creep.memory.energySourceId=closestSourceId];
+            creep.memory.energySourceId=closestSourceId;
             creep.memory.energySourceType=closestSourceIdType;
 
             return (true)

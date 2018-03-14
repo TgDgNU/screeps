@@ -56,7 +56,7 @@ module.exports = {
 
             result=spawn.spawnCreep(creep["body"],creep['name'],{"memory":
                     _.merge(creep["memory"],{subrole:creep["subrole"],spawnedBy:spawnName,energy_source:creep["energy_source"]})});
-            
+
             if (creep["store_to"]){
                 Game.creeps[creep['name']].memory['store_to']=creep['store_to'];
             }

@@ -30,7 +30,7 @@ var roleHarvester = {
             if (!target){
                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (structure) => {return (structure.structureType == STRUCTURE_STORAGE 
-                        && structure.store.energy < structure.storeCapacity*0.9}});
+                        && structure.store.energy < structure.storeCapacity*0.9)});
             }
             // if found suitable target - transfer or move to it. If not found - target = null
             if(target) {

@@ -63,7 +63,7 @@ module.exports = {
         //    _.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict))
         temp=_.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict)
 
-        if (!("test" in temp) {
+        if (!("test" in temp)) {
             Game.spawns[spawnName].memory.creepQueue.unshift(temp);
         }
 

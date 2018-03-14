@@ -15,6 +15,7 @@ module.exports = {
             Game.spawns[spawnName].memory.creepQueue=[];
         }
         //var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable
+        //stable
         var energyForBuild=1450;
         //no building for unclaimed rooms
         if (!spawnName) { return };

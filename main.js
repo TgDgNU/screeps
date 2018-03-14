@@ -128,7 +128,7 @@ if ((Game.time % 300) === 0) {
         if (fullStorage.length>0){
             Game.notify("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
             console.log("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,WORK,WORK,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10,energy_source:energySourceID})
+            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,WORK,WORK,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10})
 
         }
         //if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&

@@ -48,40 +48,53 @@ module.exports = {
         }
 
         var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
-        var basicBodyLayout=[MOVE,WORK,CARRY];
+        var optimalEnergyForBuild=1200
         var priority={"harvester":35,"upgrader":25,"builder":30,"miner":34,"energyHauler":32,"scout":20,"warbot":55,"claimer":33};
+        var memory={}
 
-
-        // Basic body layout for roadrooms
-        for (let i=1;i<Math.round(energyForBuild/250);i++) {
-            basicBodyLayout=basicBodyLayout.concat([MOVE,WORK,CARRY])
-        }
-        /*
-        // energy hauler for no_rooms
-        bodyLayout["energyHauler"]=[CARRY,WORK,MOVE,MOVE];
-        for (let i=1;i<=(Math.round(energyForBuild-250)/100);i++) {
-            bodyLayout["energyHauler"]=bodyLayout["energyHauler"].concat([CARRY,MOVE]);
+        if (!(role in priority)){
+            priority[role]=0;
         }
 
-        bodyLayout["miner"]=[MOVE,WORK,WORK]
-        if (energyForBuild<650) {
-            for (let i=1;i<=(Math.round(energyForBuild-250)/100);i++) {
-                bodyLayout["miner"]=bodyLayout["miner"].concat([WORK]);
-            }
-            //console.log(bodyLayout["miner"])
+        var partsArray={"basic":{"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]}};
+        partsArray["energyHauler"]={"base":[CARRY,WORK,MOVE,MOVE],"add":[CARRY,MOVE]};
+        partsArray["miner"]={"base":[WORK,WORK,MOVE],"add":[WORK,WORK,MOVE]};
+
+        if (role in partsArray){
+            var bodyLayout=partsArray["role"]["base"];
+            var add=partsArray["role"]["add"]
         }
         else{
-            bodyLayout["miner"]=[WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE]
+            var bodyLayout=partsArray["base"]["base"];
+            var add=partsArray["base"]["add"]
         }
 
-        bodyLayout["claimer"]=[MOVE,CLAIM]
-        for (let i=1;i<=(Math.round(energyForBuild-650)/650);i++) {
-            bodyLayout["claimer"]=bodyLayout["claimer"].concat([CLAIM,MOVE]);
+
+
+        memory["claim"]=roomName;
+        if (role=="energyHauler") {
+            memory["store_to"]=roomName;
         }
 
-        return()
-*/
-    },
+
+
+
+        var baseCost=_.sum(_.flatMap(bodyLayout,id => BODYPART_COST[id]));
+        var addCost=_.sum(_.flatMap(add,id => BODYPART_COST[id]));
+        var fullcost=baseCost;
+
+        for (let i = 1; i <= (Math.round(Math.min(energyForBuild, optimalEnergyForBuild) - baseCost) / addCost); i++) {
+            bodyLayout = bodyLayout["energyHauler"].concat([CARRY, MOVE]);
+            fullcost+=addCost;
+        }
+
+        Game.spawns[spawnName].memory.creepQueue.unshift(
+            _.merge({"body":bodyLayout,"role":role,"priority":priority[role],"energy":fullcost,"memory":memory},
+                subroleArray))
+
+        //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))
+
+    }
 
 
 };

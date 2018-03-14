@@ -1,62 +1,62 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('function.processCreepQueue');
- * mod.thing == 'a thing'; // true
- */
-
 module.exports = {
     run(spawnName){
 
         //console.log("Processing queue "+spawnName);
 
         var spawn=Game.spawns[spawnName];
-        if (!Game.spawns[spawnName].memory.creepQueue){Game.spawns[spawnName].memory.creepQueue=[]};
+        if (!Game.spawns[spawnName].memory.creepQueue){
+            Game.spawns[spawnName].memory.creepQueue=[]
+        }
+        if (spawn.memory.creepQueue.length<=0){
+            return
+        }
 
         spawn.memory.creepQueue.sort( function priCompare(task1,task2) {return task2["priority"]-task1["priority"]});
 
-
-
-        if (spawn.memory.creepQueue.length<=0){
-            return;
+        var creep=calculateCreepEnergyCost(spawn.memory.creepQueue[0]);
+        if (!("memory" in creep)){
+            creep["memory"]={};
         }
 
 
-        var creep=calculateCreepEnergyCost(spawn.memory.creepQueue[0]);
-        
         while (creep["energy"]>Game.spawns[spawnName].room.energyCapacityAvailable) {
             Game.notify("Too expensive creep!\n"+showCreep(creep));
             console.log("<font color=red>Too expensive creep!</font>\n"+showCreep(creep))
             spawn.memory.creepQueue.shift()
-            creep=calculateCreepEnergyCost(spawn.memory.creepQueue[0]);
-            if (spawn.memory.creepQueue[0].length>0){
-                
+            if (spawn.memory.creepQueue[0].length==0){
+                return
             }
+            creep=calculateCreepEnergyCost(spawn.memory.creepQueue[0]);
         }
 
+        if ("role" in creep){
+            creep["memory"]["role"]=creep["role"]
+        }
+        if ("claim" in creep){
+            creep["memory"]["claim"]=creep["claim"]
+        }
 
-        if (!("role" in creep)) {
+        if (!("role" in creep["memory"])) {
             console.log("No creep role! Deleting");
             Game.notify("No creep role! Deleting!");
+            Game.notify(showCreep(creep));
             spawn.memory.creepQueue.pop();
             return;
         }
 
         if (!("subrole" in creep)) {creep["subrole"]="";}
-        if (!("claim" in creep)) {creep["claim"]=spawn.room.name;}
+        if (!("claim" in creep["memory"])) {creep["memory"]["claim"]=spawn.room.name;}
         if (!("energy_source" in creep)) {creep["energy_source"]=0;}
         if (!("name" in creep)) {creep["name"]=createName(creep);}
 
 
-        if (Game.spawns[spawnName].room.energyAvailable >= spawn.memory.creepQueue[0]["energy"]) {
+        if (Game.spawns[spawnName].room.energyAvailable >= creep["energy"]) {
             
             //console.log("Building\n"+showCreep(creep,"compact"));
 
-            result=spawn.spawnCreep(creep["body"],creep['name'],
-                {memory:{role:creep["role"],subrole:creep["subrole"],claim:creep["claim"],spawnedBy:spawnName,energy_source:creep["energy_source"]}});
-
+            result=spawn.spawnCreep(creep["body"],creep['name'],{"memory":
+                    _.merge(creep["memory"],{subrole:creep["subrole"],spawnedBy:spawnName,energy_source:creep["energy_source"]})});
+            
             if (creep["store_to"]){
                 Game.creeps[creep['name']].memory['store_to']=creep['store_to'];
             }

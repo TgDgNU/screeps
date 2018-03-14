@@ -12,9 +12,12 @@ var processCreepQueue = require('function.processCreepQueue');
 var buildCreepQueue=require('function.buildCreepQueue');
 var lib=require('function.libraries');
 var processRoom=require('function.processRoom');
+var createCreep=require('function.createCreep');
+
 
 module.exports.loop = function () {
 
+    Game.constructCreep=createCreep.constructCreep
 
     if (Game.time%10===0){
         for (let rName in Game.rooms){

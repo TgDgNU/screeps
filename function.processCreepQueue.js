@@ -38,6 +38,9 @@ module.exports = {
         if ("claim" in creep){
             creep["memory"]["claim"]=creep["claim"]
         }
+        if ("subrole" in creep){
+            creep["memory"]["subrole"]=creep["subrole"]
+        }
 
         if (!("role" in creep["memory"])) {
             console.log("No creep role! Deleting");
@@ -47,7 +50,7 @@ module.exports = {
             return;
         }
 
-        if (!("subrole" in creep)) {creep["subrole"]="";}
+        if (!("subrole" in creep)) {creep["subrole"]="";creep["memory"]["subrole"]=""}
         if (!("claim" in creep["memory"])) {creep["memory"]["claim"]=spawn.room.name;}
         if (!("energy_source" in creep)) {creep["energy_source"]=0;}
         if (!("name" in creep)) {creep["name"]=createName(creep);}
@@ -89,7 +92,7 @@ module.exports = {
 //Game.spawns.Spawn1.memory.creepQueue.push({name:"test",body:[CLAIM,MOVE,MOVE],role:'claimer',subrole:'claimer',spawnedBy:"Spawn1",claim:"E2S19",energy:700});
 function createName(creep) {
     //return("test");
-    return (creep["role"]+"-"+creep["subrole"]+"-"+creep["claim"]+"-"+Game.time);
+    return (creep["memory"]["role"]+"-"+creep["memory"]["subrole"]+"-"+creep["memory"]["claim"]+"-"+Game.time);
 }
 /*
 function showCreep(creep,displayStyle) {

@@ -59,10 +59,16 @@ module.exports = {
         }
 
 
-        //Game.spawns[spawnName].memory.creepQueue.unshift(
+        //
         //    _.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict))
-        result=""
         temp=_.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict)
+
+        if (!("test" in temp) {
+            Game.spawns[spawnName].memory.creepQueue.unshift(temp);
+        }
+
+
+        result=""
         for (i in temp){
             result+=i+"->"+temp[i]+":"
             if (i=="memory") {

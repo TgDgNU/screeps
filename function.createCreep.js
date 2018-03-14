@@ -17,6 +17,10 @@ module.exports = {
 
         var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
         var optimalEnergyForBuild=1200
+        if ("energy" in subroleDict){
+            optimalEnergyForBuild=subroleDict["energy"]
+            delete(subroleDict["energy"]);
+        }
         var priority={"harvester":35,"upgrader":25,"builder":30,"miner":34,"energyHauler":32,"scout":20,"warbot":55,"claimer":33};
         var memory={}
 

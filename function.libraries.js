@@ -39,6 +39,8 @@ module.exports = {
     },
     
     constructCreep : function(roomName,role,subroleArray) {
+
+        /*
         [spawnName,roomType]=lib.findSpawn(roomName);
         if (!spawnName) { return }
         if (!Game.spawns[spawnName].memory.creepQueue){
@@ -78,7 +80,7 @@ module.exports = {
         }
 
         return()
-
+*/
     },
 
 

@@ -50,9 +50,12 @@ module.exports = {
         if (!("name" in creep)) {creep["name"]=createName(creep);}
 
 
+        //return;
+
         if (Game.spawns[spawnName].room.energyAvailable >= spawn.memory.creepQueue[0]["energy"]) {
             
-            //console.log("Building\n"+showCreep(creep,"compact"));
+            console.log("Building\n"+showCreep(creep));
+            //console.log("Energy ok "+createName(creep));
 
             result=spawn.spawnCreep(creep["body"],creep['name'],
                 {memory:{role:creep["role"],subrole:creep["subrole"],claim:creep["claim"],spawnedBy:spawnName,energy_source:creep["energy_source"]}});
@@ -65,9 +68,7 @@ module.exports = {
             }
 
             console.log(spawnName+" spawning "+creep["name"]);
-            if (result!=0) {
-                Game.notify("Could not spawn creep "+creep["name"]+" result "+result)
-            }
+            console.log("Result: "+result);
             spawn.memory.creepQueue.shift();
             if (spawn.memory.creepQueue.length>0) {
                 console.log("Left on queue: ")

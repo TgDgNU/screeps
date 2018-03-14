@@ -38,6 +38,11 @@ module.exports = {
         return([null,null]);
     },
     
+<<<<<<< HEAD
+    constructCreep : function(spawnName,role,subroleArray) {
+        
+    }
+=======
     constructCreep : function(roomName,role,subroleArray) {
 
         /*
@@ -82,6 +87,7 @@ module.exports = {
         return()
 */
     },
+>>>>>>> parent of 4caaaec... Revert "upd"
 
 
 };

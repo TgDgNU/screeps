@@ -109,26 +109,24 @@ if ((Game.time % 300) === 0) {
             if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&
                 (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
                 ((energySources[energySourceID].ticksToRegeneration+20)/300)){
-                //Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:11,energy_source:energySourceID})
-                //Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE],role:"upgrader",priority:10,energy_source:energySourceID})
-                console.log("Need additional creep for energy source "+energySourceID);
+                Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:10,energy_source:energySourceID})
+                Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10,energy_source:energySourceID})
+                console.log("Spawning additional creep for energy source "+energySourceID);
 
             }
         }
         console.log("Checking for full containers");
         fullContainers=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_CONTAINER && s.store.energy>(s.storeCapacity*0.8)})
         if (fullContainers.length>0){
-            Game.notify("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
             console.log("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:11})
+            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10})
 
         }
         console.log("Checking for full storage");
         fullStorage=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE && s.store.energy>(s.storeCapacity*0.7)})
         if (fullStorage.length>0){
-            Game.notify("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
-            console.log("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,WORK,WORK,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10,energy_source:energySourceID})
+            Game.notify("<font color=green>Spawning additional SUPER upgrader for room "+roomName+"</font>")
+            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"upgrader",priority:30})
 
         }
         //if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&

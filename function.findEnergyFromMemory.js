@@ -7,14 +7,12 @@ var findEnergyFromMemory = {
             return (false)
         }
 
-        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity}).
-            map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).compact();
-
+        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity})
         if (temp.length>0) {
-           closestSourceId=creep.pos.findClosestByPath(temp).id;
+           closestSourceId=creep.pos.findClosestByPath(temp.map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2]))).id;
             for (let i in Memory.rooms[creep.room.name]["roomEnergyArray"]){
                 if (Memory.rooms[creep.room.name]["roomEnergyArray"][i][2]==closestSourceId){
-                    closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0];
+                    closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0]
                     Memory.rooms[creep.room.name]["roomEnergyArray"][i][1]-=creep.carryCapacity;
                 }
             }

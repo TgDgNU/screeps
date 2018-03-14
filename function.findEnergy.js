@@ -26,10 +26,10 @@ var findEnergy = {
             //            return (structure.structureType==STRUCTURE_STORAGE);}})
             var source_container_not_full=creep.pos.findClosestByPath(FIND_STRUCTURES, { filter: (structure) => {
                         return (structure.structureType==STRUCTURE_CONTAINER) &&
-                                  structure.store.energy > (structure.storeCapacity/5);}})
+                                  structure.store.energy > (structure.storeCapacity/10);}})
                                   
             var source_storage=creep.pos.findClosestByPath(FIND_STRUCTURES, { filter: (structure) => {
-                        return (structure.structureType==STRUCTURE_STORAGE && structure.store.energy>(structure.storeCapacity/10));}})
+                        return (structure.structureType==STRUCTURE_STORAGE);}})
             var range_array=[]
             if (typeof source_droppped != typeof undefined && source_droppped) { range_array[0]=-(creep.pos.getRangeTo(source_droppped)*2)+source_droppped.amount/50+16; if (creep.pos.getRangeTo(source_droppped)<=2) {range_array[0]=100} }
             else {range_array[0]=-1000;}
@@ -47,12 +47,8 @@ var findEnergy = {
             //    console.log(Math.max(...range_array));
             //    console.log(bestpath);
             //}
-            if (creep.memory.role=="upgrader" &&  source_storage) {
-                if(creep.withdraw(source_storage,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source_storage, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 5});
-                }
-            }
-            else if ((Math.max(...range_array) < -5)  && creep.memory.role!="energyHauler" )
+    
+            if ((Math.max(...range_array) < -5)  && creep.memory.role!="energyHauler" )
             {
                 //creep.say("Harv "+Math.max(...range_array));
                 var sources = creep.room.find(FIND_SOURCES);

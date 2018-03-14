@@ -15,7 +15,12 @@ module.exports = {
             Game.spawns[spawnName].memory.creepQueue=[];
         }
         //var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable
+<<<<<<< HEAD
+        var energyForBuild=1650;
+        var energyForBuild=1550;
+=======
         var energyForBuild=1450;
+>>>>>>> parent of 9fbbe2f... test
         //no building for unclaimed rooms
         if (!spawnName) { return };
         var roomType=lib.findSpawn(roomName)[1];

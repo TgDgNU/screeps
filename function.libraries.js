@@ -8,20 +8,23 @@
  */
 
 module.exports = {
-    showCreep : function(creep,displayStyle) {
+    showCreep: function(creep,displayStyle) {
         var result="";
         if (typeof displayStyle === 'undefined') {
             var delimeter = "\n"
         }
-        else if (displayStyle="compact") {
+        else if (displayStyle=="compact" || displayStyle=="supercompact") {
             var delimeter = " : "
         }
         for (i in creep){
-            result+=i+" "+creep[i]+delimeter
-    
+            if (i!="body" || displayStyle!="supercompact"){
+                result+=i+" "+creep[i]+delimeter
+            }
         }
         return (result);
     },
+
+
     
     findSpawn : function(roomName){
         for (let spawnN in Game.spawns) {
@@ -38,13 +41,17 @@ module.exports = {
         return([null,null]);
     },
     
-    constructCreep : function(roomName,role,subroleArray) {
+    constructCreep : function(roomName,role,subroleDict) {
 
 
         [spawnName,roomType]=lib.findSpawn(roomName);
         if (!spawnName) { return }
         if (!Game.spawns[spawnName].memory.creepQueue){
             Game.spawns[spawnName].memory.creepQueue=[];
+        }
+
+        if (!subroleDict){
+            subroleDict={}
         }
 
         var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
@@ -72,6 +79,7 @@ module.exports = {
 
 
         memory["claim"]=roomName;
+        memory["role"]=role;
         if (role=="energyHauler") {
             memory["store_to"]=roomName;
         }
@@ -88,9 +96,15 @@ module.exports = {
             fullcost+=addCost;
         }
 
+
         Game.spawns[spawnName].memory.creepQueue.unshift(
-            _.merge({"body":bodyLayout,"role":role,"priority":priority[role],"energy":fullcost,"memory":memory},
-                subroleArray))
+            _.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict))
+        result=""
+        for (i in Game.spawns[spawnName].memory.creepQueue[0]){
+                result+=i+" "+Game.spawns[spawnName].memory.creepQueue[0][i]+delimeter
+            }
+        }
+        console.log(result);
 
         //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))
 

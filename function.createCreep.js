@@ -54,7 +54,7 @@ module.exports = {
         var fullcost=baseCost;
 
         for (let i = 1; i <= (Math.round(Math.min(energyForBuild, optimalEnergyForBuild) - baseCost) / addCost); i++) {
-            bodyLayout = bodyLayout.concat([CARRY, MOVE]);
+            bodyLayout = bodyLayout.concat(add);
             fullcost+=addCost;
         }
 

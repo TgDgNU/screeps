@@ -94,7 +94,7 @@ module.exports = {
                             console.log("No priority for role "+role)
                         }
                         Game.spawns[spawnName].memory.creepQueue.unshift({body:bodyLayout[role],role:role,priority:priority[role],energy_source:energySource,claim:roomName})
-                        console.log("Add "+lib.showCreep(Game.spawns[spawnName].memory.creepQueue[0],"compact")+" for room "+roomName);
+                        console.log("Add "+lib.showCreep(Game.spawns[spawnName].memory.creepQueue[0],"supercompact")+" for room "+roomName);
                     }
                 }
             }

@@ -72,7 +72,7 @@ module.exports = {
             if (spawn.memory.creepQueue.length>0) {
                 console.log("Left on queue: ")
                 for (let id in spawn.memory.creepQueue){
-                    console.log(showCreep(spawn.memory.creepQueue[id],"compact"));
+                    console.log(showCreep(spawn.memory.creepQueue[id],"supercompact"));
                 }
                 
             }
@@ -94,12 +94,13 @@ function showCreep(creep,displayStyle) {
     if (typeof displayStyle === 'undefined') {
         var delimeter = "\n"
     }
-    else if (displayStyle="compact") {
+    else if (displayStyle=="compact" || displayStyle=="supercompact") {
         var delimeter = " : "
     }
     for (i in creep){
-        result+=i+" "+creep[i]+delimeter
-
+        if (i!="body" || displayStyle!="supercompact"){
+            result+=i+" "+creep[i]+delimeter
+        }
     }
     return (result);
 }

@@ -60,18 +60,13 @@ for (let rName in Game.rooms){
             if(spawnName && Game.rooms[rName].find(FIND_HOSTILE_CREEPS,{filter : cr => cr.owner.username=="Invader"}).length>0) {
                 if ((!(Memory.rooms[rName]["spawnedDefenderTime"]) || ((Game.time-Memory.rooms[rName]["spawnedDefenderTime"])>1300))) {
                     let bodyLayout={};
-                    bodyLayout["warbot"]=[MOVE,ATTACK];
-                    for (let i=1;i<=(Math.round(Game.spawns[lib.findSpawn(rName)[0]].room.energyCapacityAvailable-130)/130);i++) {
-                        bodyLayout["warbot"]=bodyLayout["warbot"].concat([MOVE,ATTACK]);
+                    bodyLayout["warbot"]=[ATTACK,MOVE];
+                    for (let i=1;i<=(Math.round(900-130)/130);i++) {
+                        bodyLayout["warbot"]=bodyLayout["warbot"].concat([ATTACK,MOVE]);
                     }
                     Game.spawns[spawnName].memory.creepQueue.push({body:bodyLayout["warbot"],role:"warbot",priority:50,claim:rName})
                     Game.notify("Spawned warbot to battle in room "+rName);
                     Memory.rooms[rName]["spawnedDefenderTime"]=Game.time;
-                    Game.notify("Left on queue for "+spawnName);
-                    for (let id in Game.spawns[spawnName].memory.creepQueue){
-                        Game.notify(lib.showCreep(Game.spawns[spawnName].memory.creepQueue[id],"compact"));
-
-                    }
                 }
             }
         }
@@ -131,13 +126,6 @@ if ((Game.time % 300) === 0) {
             Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,WORK,WORK,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10})
 
         }
-        //if ( Memory["rooms"][roomName]["sources"][energySourceID]["space"]>1 &&
-        //        (energySources[energySourceID].energy/energySources[energySourceID].energyCapacity) >
-        //            ((energySources[energySourceID].ticksToRegeneration+20)/300)){
-        //    Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,CARRY,CARRY,MOVE,MOVE],role:"harvester",priority:10,energy_source:energySourceID})
-        //    console.log("Spawning additional creep for energy source "+energySourceID);
-        //}
-
     }
 }
 
@@ -155,6 +143,12 @@ if (Game.time % 600 === 0) {
         }
     }
     Game.notify(createGameNotification());
+    for (let spawnName in Game.spawns) {
+        Game.notify("Left on queue for " + spawnName);
+        for (let id in Game.spawns[spawnName].memory.creepQueue) {
+            Game.notify(lib.showCreep(Game.spawns[spawnName].memory.creepQueue[id], "supercompact"));
+        }
+    }
 }
 
 

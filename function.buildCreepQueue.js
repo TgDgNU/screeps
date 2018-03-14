@@ -16,7 +16,7 @@ module.exports = {
         }
         //var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable
         //stable
-        var energyForBuild=1450;
+        var energyForBuild=1300;
         //no building for unclaimed rooms
         if (!spawnName) { return };
         var roomType=lib.findSpawn(roomName)[1];

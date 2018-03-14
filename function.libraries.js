@@ -40,7 +40,7 @@ module.exports = {
     
     constructCreep : function(roomName,role,subroleArray) {
 
-        /*
+
         [spawnName,roomType]=lib.findSpawn(roomName);
         if (!spawnName) { return }
         if (!Game.spawns[spawnName].memory.creepQueue){
@@ -56,7 +56,7 @@ module.exports = {
         for (let i=1;i<Math.round(energyForBuild/250);i++) {
             basicBodyLayout=basicBodyLayout.concat([MOVE,WORK,CARRY])
         }
-
+        /*
         // energy hauler for no_rooms
         bodyLayout["energyHauler"]=[CARRY,WORK,MOVE,MOVE];
         for (let i=1;i<=(Math.round(energyForBuild-250)/100);i++) {

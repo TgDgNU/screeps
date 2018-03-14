@@ -101,8 +101,7 @@ module.exports = {
             _.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict))
         result=""
         for (i in Game.spawns[spawnName].memory.creepQueue[0]){
-                result+=i+" "+Game.spawns[spawnName].memory.creepQueue[0][i]+delimeter
-            }
+            result+=i+" "+Game.spawns[spawnName].memory.creepQueue[0][i]+delimeter
         }
         console.log(result);
 

@@ -33,7 +33,10 @@ module.exports = {
                 return ([spawnN,"spawnRoom"])
             }
             for (roomN in spawn.memory.claim){
-                if (roomN==roomName) {
+                if (roomN==roomName && spawn.memory.claim[roomN]=="expandRoom") {
+                    return([spawnN,"expandRoom"])
+                }
+                else if (roomN==roomName) {
                     return([spawnN,"claimRoom"])
                 }
             }

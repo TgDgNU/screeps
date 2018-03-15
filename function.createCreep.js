@@ -32,6 +32,7 @@ module.exports = {
         partsArray["energyHauler"]={"base":[CARRY,WORK,MOVE,MOVE],"add":[CARRY,MOVE]};
         partsArray["miner"]={"base":[WORK,WORK,MOVE],"add":[WORK,WORK,MOVE]};
         partsArray["warbot"]={"base":[ATTACK,MOVE],"add":[ATTACK,MOVE]};
+        partsArray["claimer"]={"base":[CLAIM,MOVE],"add":[CLAIM,MOVE]};
 
         if (role in partsArray){
             var bodyLayout=partsArray[role]["base"];

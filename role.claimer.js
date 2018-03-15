@@ -8,7 +8,10 @@ var roleClaimer = {
         //creep.say("I what");
         //if (creep.room.findClosestByPath())
         if (creep.room.name==creep.memory.claim){
-                if (creep.room.controller.reservation && creep.room.controller.reservation.username!=creep.owner.username) {
+                if (Game.spawns[creep.memory["spawnedBy"]].memory.claim[creep.memory.claim]=="expandRoom"){
+                    result=creep.claimController(creep.room.controller);
+                }
+                else if (creep.room.controller.reservation && creep.room.controller.reservation.username!=creep.owner.username) {
                     result=creep.attackController(creep.room.controller);
                 }
                 else {

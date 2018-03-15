@@ -69,6 +69,14 @@ module.exports = {
                         bodyLayout["miner"]=bodyLayout["miner"].concat([WORK,MOVE]);
                     }
                 }
+                else if (roomType=="expandRoom"){
+                    roomLayout={"miner":1,"builder":1,"upgrader":1,"harvester":1}
+                    if (!Game.rooms[roomName] || !Game.rooms[roomName].controller.my){
+                        roomLayout["claimer"]=1;
+                    }
+                    priority["upgrader"]=34;
+                    bodyLayout["upgrader"]=[WORK,WORK,MOVE,MOVE,CARRY,CARRY,MOVE,MOVE]
+                }
                 
                 if (energyForBuild>=350 && !("miner" in roomLayout)){
                     roomLayout["miner"]=1;

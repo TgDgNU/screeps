@@ -35,6 +35,21 @@ module.exports.loop = function () {
     }
 
 
+//find expand
+    /*
+    var temp=[]
+    for (let spawnN in Game.spawns) {
+        for (let R in Game.spawns[spawnN]["memory"]["claim"])
+        {
+            console.log(R)
+            if (Game.spawns[spawnN]["memory"]["claim"][R]=="expandRoom"){
+                console.log("Found expand Room")
+                //temp.push(R)
+            }
+        }
+    }
+    console.log("Expand rooms"+temp);
+*/
 for (let rName in Game.rooms){
     if (!(rName in Memory.rooms)){
         Memory.rooms[rName]={};
@@ -48,7 +63,9 @@ for (let rName in Game.rooms){
     functionDefendRoom.run(rName);
     
     
-    if (lib.findSpawn(rName) && (lib.findSpawn(rName)[1]=="spawnRoom" || (lib.findSpawn(rName)[1]=="claimRoom" && Game.rooms[rName].find(FIND_HOSTILE_CREEPS).length==0))){
+    if (lib.findSpawn(rName) && (lib.findSpawn(rName)[1]=="spawnRoom" || lib.findSpawn(rName)[1]=="expandRoom" || (lib.findSpawn(rName)[1]=="claimRoom" && Game.rooms[rName].find(FIND_HOSTILE_CREEPS).length==0))){
+        //console.log(rName)
+        //console.log(lib.findSpawn(rName)[1])
         buildCreepQueue.run(rName);
     }
 

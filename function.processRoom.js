@@ -26,8 +26,20 @@ var processRoom = {
             roomEnergyArray.push(["storage", storage[id].store.energy, storage[id].id])
         }
 
-        //for (let creep in Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: cr=> {cr.memory.working==false && cr.memory.}})
 
+        creepArray=Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: cr=> cr.memory.working==false && cr.memory.energySourceId});
+        if (creepArray.length>0){
+            for (let i in creepArray){
+                //console.log(creepArray[i].name);
+
+                for (let element in roomEnergyArray){
+                    if (roomEnergyArray[element][2]==creepArray[i].memory.energySourceId) {
+                        roomEnergyArray[element][1] -= creepArray[i].carryCapacity - creepArray[i].carry.energy;
+                    }
+                }
+
+            }
+        }
 
 
         return(roomEnergyArray)

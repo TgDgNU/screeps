@@ -14,8 +14,13 @@ var roleEnergyHauler = {
         else if (!creep.memory.working){
             if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
                 if (creep.memory.energySourceType=="storage" || creep.memory.energySourceType=="container") {
-                    if (creep.withdraw(Game.getObjectById(creep.memory.energySourceId) == ERR_NOT_IN_RANGE)){
-                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
+                    let result=creep.withdraw(Game.getObjectById(creep.memory.energySourceId),RESOURCE_ENERGY);
+                    console.log(result);
+                    if ( result== ERR_NOT_IN_RANGE){
+                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#00ff00'},reusePath: 50})
+                    }
+                    else if (result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
+                        creep.memory.energySourceId=null
                     }
                 }
                 else if (creep.memory.energySourceType=="droppedEnergy"){
@@ -24,7 +29,7 @@ var roleEnergyHauler = {
                     if (result == ERR_NOT_IN_RANGE){
                         creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
                     }
-                    else if (result == ERR_INVALID_TARGET){
+                    else if (result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
                         creep.memory.energySourceId=null
                     }
                 }
@@ -33,7 +38,7 @@ var roleEnergyHauler = {
                    findEnergy.run(creep)
             }
 
-            creep.say("Energy!");
+            //creep.say("Energy!");
 
         }
         else if (creep.memory.working && creep.room.name!=creep.memory.store_to){
@@ -56,11 +61,15 @@ var roleEnergyHauler = {
                         );
                 }
             });
+            if (creep.memory.claim==creep.memory.store_to){
+                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType==STRUCTURE_STORAGE && structure.store.energy <structure.storeCapacity})
+            }
             // if found suitable target - transfer or move to it. If not found - target = null
             if(target) {
                 creep.say("Haul");
                 if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+                    creep.moveTo(target, {visualizePathStyle: {stroke: '#fff902'}});
                 }
             }  
         }

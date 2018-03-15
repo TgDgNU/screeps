@@ -1,6 +1,7 @@
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var findEnergy = require('function.findEnergy');
+var findEnergyFromMemory = require('function.findEnergyFromMemory');
 
 var roleHarvester = {
 
@@ -11,12 +12,39 @@ var roleHarvester = {
         // if out of energy > go gather some
         if((creep.carry.energy < creep.carryCapacity && creep.memory.working==false) || creep.carry.energy == 0) {
             creep.memory.working=false;
-            findEnergy.run(creep);
+            if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
+                if (creep.memory.energySourceType=="storage" || creep.memory.energySourceType=="container") {
+                    let result=creep.withdraw(Game.getObjectById(creep.memory.energySourceId),RESOURCE_ENERGY);
+                    console.log(result);
+                    if ( result== ERR_NOT_IN_RANGE){
+                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#00ff00'},reusePath: 50})
+                    }
+                    else if (result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
+                        creep.memory.energySourceId=null
+                    }
+                }
+                else if (creep.memory.energySourceType=="droppedEnergy"){
+                    let result=creep.pickup(Game.getObjectById(creep.memory.energySourceId));
+
+                    if (result == ERR_NOT_IN_RANGE){
+                        creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#ffffff'},reusePath: 50})
+                    }
+                    else if (result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
+                        creep.memory.energySourceId=null
+                    }
+                }
+            }
+            else{
+                findEnergy.run(creep)
+            }
+
+            //creep.say("Energy!");
+
         }
-        // if full - go working (haul energy)
         else {
             // search for nearest
             creep.memory.working=true;
+            creep.memory.energySourceId=null;
 
             var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (structure) => {

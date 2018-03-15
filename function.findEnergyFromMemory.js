@@ -7,7 +7,7 @@ var findEnergyFromMemory = {
             return (false)
         }
 
-        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity}).
+        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity && (roomEnergyObject[0]!="storage" || creep.memory.useStorage )}).
             map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).filter(item=>item);
 
         if (temp.length>0) {

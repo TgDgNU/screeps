@@ -15,7 +15,7 @@ var roleEnergyHauler = {
             if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
                 if (creep.memory.energySourceType=="storage" || creep.memory.energySourceType=="container") {
                     let result=creep.withdraw(Game.getObjectById(creep.memory.energySourceId),RESOURCE_ENERGY);
-                    console.log(result);
+
                     if ( result== ERR_NOT_IN_RANGE){
                         creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#00ff00'},reusePath: 50})
                     }

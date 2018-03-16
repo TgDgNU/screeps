@@ -105,14 +105,14 @@ for (let spawnName in Game.spawns){
 
 
     // scout for rooms that are claimed but not visible
-    if ((Game.time % 3000) === 0) {
+    if ((Game.time % 1500) === 0) {
         for (let spawnName in Game.spawns){
             let spawn=Game.spawns[spawnName];
             for (let claimRoom in spawn.memory.claim){
                 if (!(claimRoom in Game.rooms)){
-                    createCreep.run(rName,"warbot",{"priority":9,"fast":true,"scout":true,"claim":claimRoom,"cost":130});
+                    createCreep.run(rName,"warbot",{"priority":9,"fast":true,"scout":true,"claim":claimRoom,"cost":200});
                     //Game.spawns[spawnName].memory.creepQueue.push({body:[MOVE],role:"warbot",priority:9,claim:claimRoom})
-                    console.log("Send scout to room "+claimRoom)
+                    Game.notify("Send scout to room "+claimRoom)
                 }
             }
         }

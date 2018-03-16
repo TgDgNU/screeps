@@ -106,14 +106,15 @@ module.exports = {
                 for (let bodyItem in temp[i]){
                     if (!(temp[i][bodyItem] in bodyObj)){
                         bodyObj[temp[i][bodyItem]]=1
+                        
                     }
                     else{
-                        bodyObj[temp[i][bodyItem]]+=1
+                        bodyObj[temp[i][bodyItem]]=bodyObj[temp[i][bodyItem]]+1
                     }
                 }
-                result="\n"+result
+                result=" # "+result
                 for (let bodyItem in bodyObj){
-                    result=bodyObj+":"+bodyObj[bodyItem]+" "
+                    result=bodyItem+":"+bodyObj[bodyItem]+" "+result
                 }
                 
                 //result=temp[i]+"\n"+result

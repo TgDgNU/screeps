@@ -48,6 +48,12 @@ var roleEnergyHauler = {
             if (bTarget){
                 creep.repair(bTarget);
             }
+            else{
+                bTarget=creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
+                if (bTarget){
+                    creep.build(bTarget);
+                }
+            }
         }
         else {
             var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {

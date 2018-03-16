@@ -9,6 +9,18 @@ var roleHarvester = {
     run: function(creep) {
         energy_source=creep.memory['energy_source'];
         
+        // pillage remote rooms
+        if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
+            creep.say("To "+creep.memory.claim)
+            creep.moveTo(new RoomPosition(25, 20, creep.memory.claim),{reusePath: 50});
+            return 
+        }
+        if (creep.memory.working && creep.room.name!=Game.spawns[creep.memory.spawnedBy].room.name){
+            creep.say("Going home")
+            creep.moveTo(Game.spawns[creep.memory.spawnedBy].pos,{reusePath: 50});
+            return  
+        }
+        
         // if out of energy > go gather some
         if((creep.carry.energy < creep.carryCapacity && creep.memory.working==false) || creep.carry.energy == 0) {
             creep.memory.working=false;
@@ -35,7 +47,9 @@ var roleHarvester = {
                 }
             }
             else{
-                findEnergy.run(creep)
+                if (Game.cpu.bucket>1000){
+                    findEnergy.run(creep)
+                }
             }
 
             //creep.say("Energy!");
@@ -55,11 +69,11 @@ var roleHarvester = {
                               structure.energy < structure.energyCapacity;
                 }
             });
-            if (!target){
-                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                    filter: (structure) => {return (structure.structureType == STRUCTURE_STORAGE 
-                        && structure.store.energy < structure.storeCapacity*0.9)}});
-            }
+            //if (!target){
+            //    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            //        filter: (structure) => {return (structure.structureType == STRUCTURE_STORAGE 
+            //            && structure.store.energy < structure.storeCapacity*0.9)}});
+            //}
             // if found suitable target - transfer or move to it. If not found - target = null
             if(target) {
                 creep.say("Haul");

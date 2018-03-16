@@ -19,12 +19,31 @@ var roleMiner = {
                 }
                 else {
                     nearest_containers=creep.pos.findInRange(FIND_STRUCTURES, 2, { filter: (structure) => {
-                        return (structure.structureType==STRUCTURE_CONTAINER) &&
-                                  structure.store.energy < structure.storeCapacity;}})
+                        return ((structure.structureType==STRUCTURE_CONTAINER) &&
+                                  structure.store.energy < structure.storeCapacity) }})
                     if (nearest_containers.length>0){
                         creep.moveTo(nearest_containers[0]);
+                        if (nearest_containers[0].hits<nearest_containers[0].hitsMax*0.5 && creep.carryCapacity>0 && creep.carry.energy==creep.carryCapacity) {
+                            creep.repair(nearest_containers[0]);
+                        }
                         //creep.say("top");
                     }
+                    else {
+                    nearest_containers=creep.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 2, { filter: (structure) => {
+                        return (structure.structureType==STRUCTURE_CONTAINER) }})
+                        
+                        if (nearest_containers.length>0){
+                            
+                            creep.moveTo(nearest_containers[0]);
+                            if (creep.carryCapacity>0 && creep.carry.energy==creep.carryCapacity){
+                                creep.build(nearest_containers[0])    
+                            }
+                        }
+                        else {
+                            creep.room.createConstructionSite(creep.pos,STRUCTURE_CONTAINER)
+                        }
+                    }
+                    
                 }
             
             if (creep.memory.working && creep.carry.energy==creep.carryCapacity && creep.carryCapacity>0) {

@@ -11,7 +11,22 @@ var findEnergyFromMemory = {
             map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).filter(item=>item);
 
         if (temp.length>0) {
-           closestSourceId=creep.pos.findClosestByPath(temp).id;
+            var closestSource=creep.pos.findClosestByPath(temp)
+            if (closestSource){
+                closestSourceId=closestSource.id
+            }
+            else {
+                return (false)
+            }
+            
+            
+            //try{
+            //    closestSourceId=creep.pos.findClosestByPath(temp).id;
+            //}
+            //catch(error) {
+            //    return false
+            //}
+
             for (let i in Memory.rooms[creep.room.name]["roomEnergyArray"]){
                 if (Memory.rooms[creep.room.name]["roomEnergyArray"][i][2]==closestSourceId){
                     closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0];

@@ -17,9 +17,10 @@ var createCreep=require('function.createCreep');
 
 module.exports.loop = function () {
 
-    Game.constructCreep=createCreep.constructCreep
+//Game.spawns["Spawn3"].memory["creepQueue"]=[]
+    Game.createCreep=createCreep.run
 
-    if (Game.time%10===0){
+    if (Game.time%3===0){
         for (let rName in Game.rooms){
             let res=processRoom.findEnergy(rName);
             if (!(rName in Memory.rooms)){
@@ -64,11 +65,20 @@ for (let rName in Game.rooms){
     
     
     if (lib.findSpawn(rName) && (lib.findSpawn(rName)[1]=="spawnRoom" || lib.findSpawn(rName)[1]=="expandRoom" || (lib.findSpawn(rName)[1]=="claimRoom" && Game.rooms[rName].find(FIND_HOSTILE_CREEPS).length==0))){
-        //console.log(rName)
-        //console.log(lib.findSpawn(rName)[1])
         buildCreepQueue.run(rName);
     }
 
+}
+
+for (let spawnName in Game.spawns){
+    for (let claimRoomName in Game.spawns[spawnName].memory.claim){
+        if (Game.spawns[spawnName].memory.claim[claimRoomName]=="expandRoom" && Game.rooms[claimRoomName] && Game.rooms[claimRoomName].controller.level>=3){
+            Game.notify(claimRoomName+" reachech level 3, now it's on it's own")
+            console.log(claimRoomName+" reachech level 3, now it's on it's own")
+            delete(Game.spawns[spawnName].memory.claim[claimRoomName])
+        }
+        //console.log(spawnName+" "+claimRoomName+" "+Game.spawns[spawnName].memory.claim[claimRoomName])
+    }
 }
 
 
@@ -79,12 +89,7 @@ for (let rName in Game.rooms){
             let spawnName=lib.findSpawn(rName)[0]
             if(spawnName && Game.rooms[rName].find(FIND_HOSTILE_CREEPS,{filter : cr => cr.owner.username=="Invader"}).length>0) {
                 if ((!(Memory.rooms[rName]["spawnedDefenderTime"]) || ((Game.time-Memory.rooms[rName]["spawnedDefenderTime"])>1300))) {
-                    let bodyLayout={};
-                    bodyLayout["warbot"]=[ATTACK,MOVE];
-                    for (let i=1;i<=(Math.round(900-130)/130);i++) {
-                        bodyLayout["warbot"]=bodyLayout["warbot"].concat([ATTACK,MOVE]);
-                    }
-                    Game.spawns[spawnName].memory.creepQueue.push({body:bodyLayout["warbot"],role:"warbot",priority:50,claim:rName})
+                    createCreep.run(rName,"warbot",{"cost":1000});
                     Game.notify("Spawned warbot to battle in room "+rName);
                     Memory.rooms[rName]["spawnedDefenderTime"]=Game.time;
                 }
@@ -105,7 +110,8 @@ for (let rName in Game.rooms){
             let spawn=Game.spawns[spawnName];
             for (let claimRoom in spawn.memory.claim){
                 if (!(claimRoom in Game.rooms)){
-                    Game.spawns[spawnName].memory.creepQueue.push({body:[MOVE],role:"warbot",priority:9,claim:claimRoom})
+                    createCreep.run(rName,"warbot",{"priority":9,"fast":true,"scout":true,"claim":claimRoom,"cost":130});
+                    //Game.spawns[spawnName].memory.creepQueue.push({body:[MOVE],role:"warbot",priority:9,claim:claimRoom})
                     console.log("Send scout to room "+claimRoom)
                 }
             }
@@ -132,18 +138,28 @@ if ((Game.time % 300) === 0) {
         }
         console.log("Checking for full containers");
         fullContainers=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_CONTAINER && s.store.energy>(s.storeCapacity*0.8)})
+        
         if (fullContainers.length>0){
-            Game.notify("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
-            console.log("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE],role:"harvester",priority:11})
+            if (Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE}).length>0){
+                createCreep.run(roomName,"energyHauler",{"cost":1200});
+                Game.notify("<font color=green>Spawning additional energyHauler for room "+roomName+"</font>")
+                console.log("<font color=green>Spawning additional energyHauler for room "+roomName+"</font>")
+
+            }
+            else {
+                Game.notify("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
+                console.log("<font color=green>Spawning additional harvester for room "+roomName+"</font>")
+                createCreep.run(roomName,"upgrader",{"cost":1200});
+            }
 
         }
         console.log("Checking for full storage");
         fullStorage=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE && s.store.energy>(s.storeCapacity*0.7)})
         if (fullStorage.length>0){
-            Game.notify("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
-            console.log("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
-            Game.spawns[spawnName].memory.creepQueue.push({body:[WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,WORK,WORK,CARRY,MOVE,MOVE,MOVE],role:"upgrader",priority:10})
+            Game.notify("<font color=green>Spawning additional super upgrader for room "+roomName+"</font>")
+            console.log("<font color=green>Spawning additional super upgrader for room "+roomName+"</font>")
+            createCreep.run(roomName,"upgrader",{"cost":1700,"super":true});
+    
 
         }
     }
@@ -174,28 +190,35 @@ if (Game.time % 600 === 0) {
 
 
 
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
+    for(let name in Game.creeps) {
+        let creep = Game.creeps[name];
+        try {
+            if(creep.memory.role == 'harvester') {
+                roleHarvester.run(creep);
+            }
+            if(creep.memory.role == 'repair' || (creep.memory.role == 'builder' && creep.memory.subrole=="repair")) {
+                roleRepair.run(creep);
+            }
+            if(creep.memory.role == 'upgrader') {
+                roleUpgrader.run(creep);
+            }
+            if(creep.memory.role == 'builder' ) {
+                roleBuilder.run(creep);
+            }
+            if(creep.memory.role == 'miner' || (creep.memory.role == 'harvester' && creep.memory.subrole=="miner")) {
+                roleMiner.run(creep);
+            }
+            if(creep.memory.role == 'claimer') {
+                roleClaimer.run(creep);
+            }
+            if(creep.memory.role == 'energyHauler' || (creep.memory.role == 'harvester' && creep.memory.subrole=="energyHauler")) {
+                roleEnergyHauler.run(creep);
+            }
         }
-        if(creep.memory.role == 'repair' || (creep.memory.role == 'builder' && creep.memory.subrole=="repair")) {
-            roleRepair.run(creep);
-        }
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-        if(creep.memory.role == 'builder' ) {
-            roleBuilder.run(creep);
-        }
-        if(creep.memory.role == 'miner' || (creep.memory.role == 'harvester' && creep.memory.subrole=="miner")) {
-            roleMiner.run(creep);
-        }
-        if(creep.memory.role == 'claimer') {
-            roleClaimer.run(creep);
-        }
-        if(creep.memory.role == 'energyHauler' || (creep.memory.role == 'harvester' && creep.memory.subrole=="energyHauler")) {
-            roleEnergyHauler.run(creep);
+        catch (error){
+            Game.notify("Error in creep "+name);
+            console.log("<color=red>Error in creep "+name+"</color>");
+            console.log(error)
         }
     }
 

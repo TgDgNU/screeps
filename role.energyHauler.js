@@ -5,7 +5,12 @@ var findEnergyFromMemory = require('function.findEnergyFromMemory');
 
 var roleEnergyHauler = {
     run: function(creep) {
-        energy_source=creep.memory['energy_source'];
+        if ('energy_source' in creep.memory) {
+            energy_source = creep.memory['energy_source'];
+        }
+        else{
+            energy_source =0;
+        }
 
         if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
             creep.say("Rharvest!")
@@ -44,9 +49,9 @@ var roleEnergyHauler = {
         else if (creep.memory.working && creep.room.name!=creep.memory.store_to){
             creep.say("To "+creep.memory.store_to)
             creep.moveTo(new RoomPosition(25, 20, creep.memory.store_to));
-            bTarget=creep.pos.findClosestByRange(FIND_STRUCTURES,{filter: (s) => s.hits < (s.hitsMax*0.8)});
-            if (bTarget){
-                creep.repair(bTarget);
+            bTarget=creep.pos.findInRange(FIND_STRUCTURES,3,{filter: (s) => s.hits < s.hitsMax});
+            if (bTarget.length>0){
+                creep.repair(bTarget[0]);
             }
             else{
                 bTarget=creep.pos.findClosestByRange(FIND_MY_CONSTRUCTION_SITES);
@@ -62,11 +67,11 @@ var roleEnergyHauler = {
                         structure.structureType == STRUCTURE_SPAWN ||
                         structure.structureType==STRUCTURE_TOWER) &&
                               structure.energy < structure.energyCapacity) ||
-                        (structure.structureType==STRUCTURE_CONTAINER && structure.store.energy <structure.storeCapacity) ||
+                        (structure.structureType==STRUCTURE_CONTAINER && structure.store.energy <structure.storeCapacity && !(structure.id in Memory.containers && Memory.containers[structure.id]=="mine")) ||
                         (structure.structureType==STRUCTURE_STORAGE && structure.store.energy <structure.storeCapacity)
                         );
                 }
-            });
+});
             if (creep.memory.claim==creep.memory.store_to){
                  target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (structure) => structure.structureType==STRUCTURE_STORAGE && structure.store.energy <structure.storeCapacity})
@@ -85,7 +90,7 @@ var roleEnergyHauler = {
             creep.memory.working=false;
 
         }
-        if( creep.carry.energy == creep.carryCapacity) {
+        if( creep.carry.energy > creep.carryCapacity*0.5) {
             creep.memory.working=true;
             creep.memory.energySourceId=null;
         }

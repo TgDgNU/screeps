@@ -4,7 +4,12 @@ var roleRepair = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        energy_source=creep.memory['energy_source'];
+        if ('energy_source' in creep.memory) {
+            energy_source = creep.memory['energy_source'];
+        }
+        else{
+            energy_source =0;
+        }
 
         
         
@@ -23,7 +28,7 @@ var roleRepair = {
                 if (target.hits == target.hitsMax) { creep.memory.target=false;}
             }
             else {
-                var targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax && (object.hits < object.hitsMax*0.8) && object.structureType != STRUCTURE_WALL && object.structureType != STRUCTURE_RAMPART) });
+                var targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax && (object.hits < object.hitsMax*0.8) && object.structureType != STRUCTURE_WALL &&  object.structureType != STRUCTURE_RAMPART ||  (object.structureType== STRUCTURE_RAMPART && object.hits <2000)) });
                 if(targets.length == 0) {
                     targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax )});
                 }

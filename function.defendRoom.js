@@ -18,7 +18,7 @@ function search_and_destroy(creep) {
     if (!creep.memory.claim) {
         creep.memory.claim=creep.room.name;
     }
-    if (creep.hits<creep.hitsMax/3){
+    if (creep.hits<creep.hitsMax/2){
         creep.say("Run!")
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
         if (greenFlag) {
@@ -30,6 +30,9 @@ function search_and_destroy(creep) {
         if (hostile) {creep.attack(hostile);}
     }
     else {
+        if (creep.borderPosition){
+            creep.moveTo(25,25)
+        }
         if(creep.attack(hostile) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(hostile, {visualizePathStyle: {stroke: '#ff0000'}});
                     }
@@ -97,7 +100,7 @@ var defendRoom = {
         
         var towers = Game.rooms[roomName].find(
                 FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
-        towers.forEach(tower => tower.heal(Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: (c) => c.hits < c.hitsMax})[0]));
+        towers.filter(t=>t.energy>500).forEach(tower => tower.heal(Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: (c) => c.hits < c.hitsMax})[0]));
         //towers.forEach(tower => tower.repair(Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (c) => c.hits < c.hitsMax && c.hits<1000})[2]));
         if(hostiles.length > 0) {
             //console.log("Creating warbot "+Game.spawns['Spawn1'].spawnCreep( [TOUGH,TOUGH,TOUGH,MOVE,MOVE,ATTACK, ATTACK, ATTACK, MOVE], 'WarBot' + Game.time,{ memory: { role: 'war',claim:roomName } } ));

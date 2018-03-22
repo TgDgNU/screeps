@@ -12,9 +12,7 @@ module.exports = {
         }
 
         spawn.memory.creepQueue.sort( function priCompare(task1,task2) {return task2["priority"]-task1["priority"]});
-        //for (let item in spawn.memory.creepQueue){
-        //    spawn.memory.creepQueue[item]["priority"]+=0.1;
-        //}
+
 
         var creep=calculateCreepEnergyCost(spawn.memory.creepQueue[0]);
         if (!("memory" in creep)){
@@ -40,40 +38,24 @@ module.exports = {
             return;
         }
 
-        if (!("energy_source" in creep["memory"])) {creep["memory"]["energy_source"]=0;}
-        if (!("name" in creep)) {creep["name"]=createName(creep);}
-
+        //if (!("name" in creep)) {creep["name"]=lib.createCreepName(creep);}
+        creep["name"]=lib.createCreepName(creep);
 
         if (Game.spawns[spawnName].room.energyAvailable >= creep["energy"]) {
             result=spawn.spawnCreep(creep["body"],creep['name'],{"memory":
-                    _.merge(creep["memory"],{subrole:creep["subrole"],spawnedBy:spawnName,energy_source:creep["energy_source"]})});
-            console.log(spawnName + " building "+creep["name"]);
+                    _.merge(creep["memory"],{subrole:creep["subrole"],spawnedBy:spawnName,"spawnTime":Game.time})});
 
             if (result!=0) {
                 Game.notify("Could not spawn creep "+creep["name"]+" result "+result)
             }
             spawn.memory.creepQueue.shift();
-            if (spawn.memory.creepQueue.length>0) {
-                console.log("Left "+spawn.memory.creepQueue.length+" creeps on queue for spawn "+spawnName)
-                //for (let id in spawn.memory.creepQueue){
-                //    console.log(lib.showCreep(spawn.memory.creepQueue[id],"supercompact"));
-                //}
-                
-            }
-
-
+            
+            console.log(spawnName + " building "+creep["name"]+" "+spawn.memory.creepQueue.length+" left on queue");
         }
     }
 
 };
 
-function createName(creep) {
-    var subrole=""
-    if ("subrole" in creep["memory"]){
-        subrole=creep["memory"]["subrole"]+"-";
-    }
-    return (creep["memory"]["role"]+"-"+subrole+creep["memory"]["claim"]+"-"+Game.time);
-}
 
 function calculateCreepEnergyCost(creep) {
     if (!("energy" in creep)) {

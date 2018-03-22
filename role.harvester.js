@@ -7,7 +7,12 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        energy_source=creep.memory['energy_source'];
+        if ('energy_source' in creep.memory) {
+            energy_source = creep.memory['energy_source'];
+        }
+        else{
+            energy_source =0;
+        }
         
         // pillage remote rooms
         if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
@@ -27,7 +32,6 @@ var roleHarvester = {
             if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
                 if (creep.memory.energySourceType=="storage" || creep.memory.energySourceType=="container") {
                     let result=creep.withdraw(Game.getObjectById(creep.memory.energySourceId),RESOURCE_ENERGY);
-
                     if ( result== ERR_NOT_IN_RANGE){
                         creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#00ff00'},reusePath: 50})
                     }
@@ -62,11 +66,10 @@ var roleHarvester = {
 
             var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                    return ((structure.structureType == STRUCTURE_EXTENSION ||
                         structure.structureType == STRUCTURE_SPAWN ||
-                        structure.structureType==STRUCTURE_STORAGE ||
-                        structure.structureType==STRUCTURE_TOWER) &&
-                              structure.energy < structure.energyCapacity;
+                        structure.structureType==STRUCTURE_STORAGE ) && structure.energy < structure.energyCapacity) ||
+                        (structure.structureType==STRUCTURE_TOWER && structure.energy < structure.energyCapacity*0.7)
                 }
             });
             //if (!target){

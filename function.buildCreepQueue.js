@@ -3,8 +3,9 @@ var createCreep=require('function.createCreep');
 
 module.exports = {
     run(roomName){
-
-        var basicRoomLayout={"harvester":3,"upgrader":3,"builder":1}
+        //console.log(bodyPartPriorityArray)
+        var basicRoomLayout={"harvester":2,"upgrader":2,"builder":1};
+        var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot"];
         var roomLayout=basicRoomLayout;
         var spawnName=lib.findSpawn(roomName)[0];
         
@@ -28,17 +29,24 @@ module.exports = {
             }
             for (let energySource in Game.rooms[roomName].find(FIND_SOURCES)){
                 if (roomType=="spawnRoom" && Memory["rooms"][roomName]["sources"][energySource]["space"]<=1 ){
-                    roomLayout={"miner":1};
+                    //roomLayout={"miner":1};
                 }
                 else if (roomType=="spawnRoom"){
                     roomLayout=basicRoomLayout;
+                    if (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=> s.structureType==STRUCTURE_EXTRACTOR}).length>0){
+                        roomLayout["mineralHarvester"]=1
+                
+                    }
                 }
                 else if  (roomType=="claimRoom") {
-                    roomLayout={"miner":1,"energyHauler":2,"claimer":1}
-                    if (energyForBuild<1300){
-                        roomLayout["claimer"]+=1;
+                    roomLayout={"miner":1,"energyHauler":2}
+                    if (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd<2000){
+                        roomLayout["claimer"]=1;
+                        if (energyForBuild<1300){
+                            roomLayout["claimer"]+=1;
+                        }
                     }
-                    if (Game.spawns[spawnName].room.controller.level<=4){
+                    if (Game.spawns[spawnName].room.controller.level<=3){
                         roomLayout={"harvester":2}
                     }
                 }
@@ -59,14 +67,22 @@ module.exports = {
                 }    
                 
                 for (let role in roomLayout){
-                    creepsFound=_.filter(Game.creeps, (creep) => (!creep.memory.energy_source || creep.memory.energy_source == energySource) && creep.memory.role==role && creep.memory.claim==roomName);
+                    creepsFound=_.filter(Game.creeps, (creep) => (!creep.memory.energy_source || creep.memory.energy_source == energySource) && creep.memory.role==role && creep.memory.claim==roomName && !("replace" in creep.memory));
                     creepsInQueue=_.filter(Game.spawns[spawnName].memory.creepQueue,(creep)=> (!creep.memory.energy_source || creep.memory.energy_source == energySource) && creep.memory.role==role && creep.memory.claim==roomName);
                     for (let i=0;i<roomLayout[role]-creepsFound.length-creepsInQueue.length;i++){
                         var fast=false;
                         if (roomType=="claimRoom" || roomType=="expandRoom"){
                             fast=true;
                         }
-                        createCreep.run(roomName,role,{"fast":fast,memory:{"energy_source":energySource}});
+                        if (noEnergySourceRoles.some(R => R==role)){
+                            //console.log("No energySource " + role)
+                            createCreep.run(roomName,role,{"fast":fast,memory:{}});
+                        }
+                        else{
+                            //console.log("W energySource " + role)
+                            createCreep.run(roomName,role,{"fast":fast,memory:{"energy_source":energySource}});
+                        }
+
                     }
                 }
             }

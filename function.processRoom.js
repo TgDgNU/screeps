@@ -1,4 +1,4 @@
-var lib=require('function.libraries');
+/*var lib=require('function.libraries');
 
 var processRoom = {
     findEnergy: function (roomName) {
@@ -46,4 +46,4 @@ var processRoom = {
 
     }
 }
-module.exports = processRoom;
+module.exports = processRoom;*/

@@ -1,32 +1,5 @@
-/*
- * Module code goes here. Use 'module.exports' to export things:
- * module.exports.thing = 'a thing';
- *
- * You can import it from another modules like this:
- * var mod = require('lib.display');
- * mod.thing == 'a thing'; // true
- */
 
-module.exports = {
-    showCreep: function(creep,displayStyle) {
-        var result="";
-        if (typeof displayStyle === 'undefined') {
-            var delimeter = "\n"
-        }
-        else if (displayStyle=="compact" || displayStyle=="supercompact") {
-            var delimeter = " : "
-        }
-        for (i in creep){
-            if (i!="body" || displayStyle!="supercompact"){
-                result+=i+" "+creep[i]+delimeter
-            }
-        }
-        return (result);
-    },
-
-
-    
-    findSpawn : function(roomName){
+function libFindSpawn(roomName){
         for (let spawnN in Game.spawns) {
             let spawn = Game.spawns[spawnN];
             if (spawn.room.name ==roomName){
@@ -42,6 +15,50 @@ module.exports = {
             }
         }
         return([null,null]);
+    }
+
+module.exports = {
+    showCreep: function(creep,displayStyle) {
+        result=""
+        for (i in temp){
+            if (i=="body"){
+                var bodyObj={}
+                for (let bodyItem in temp[i]){
+                    if (!(temp[i][bodyItem] in bodyObj)){
+                        bodyObj[temp[i][bodyItem]]=1
+                        
+                    }
+                    else{
+                        bodyObj[temp[i][bodyItem]]=bodyObj[temp[i][bodyItem]]+1
+                    }
+                }
+                result=" # "+result
+                for (let bodyItem in bodyObj){
+                    result=bodyItem+":"+bodyObj[bodyItem]+" "+result
+                }
+                
+                //result=temp[i]+"\n"+result
+            }
+            else if (i=="memory") {
+                result+=i+"["
+                for (let j in temp[i]){
+                    result+=j+" "+temp[i][j]+":"
+                }
+                result+="]:"
+            }
+            else {
+                result+=i+"->"+temp[i]+":"
+            }
+        }
+        return(result)
+    },
+    
+
+
+    
+    findSpawn : function (roomName) {
+        return (libFindSpawn(roomName))
+        
     },
     
     constructCreep : function(roomName,role,subroleDict) {
@@ -110,7 +127,50 @@ module.exports = {
 
         //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))
 
-    }
+    },
+    
+    resetCreepQueue: function(spawnN){
+        if (spawnN && spawnN in Game.spawns){
+            Game.spawns[spawnN].memory.creepQueue=[]
+            return true
+        }
+        for (let spawnName in Game.spawns){
+            Game.spawns[spawnName].memory.creepQueue=[]
+        }
+        return true
+    },
+    
+    createCreepName : function(creep) {
+        var subrole=""
+        if ("subrole" in creep["memory"]){
+            subrole=creep["memory"]["subrole"]+"-";
+        }
+        return (creep["memory"]["role"]+"-"+subrole+creep["memory"]["claim"]+"-"+Game.time);
+    },
+    
+    checkCreepInQueue : function(roomName,role,subroleDict){
+        var spawnName
+        [spawnName, roomType]=libFindSpawn(roomName);
+        if (!spawnName){ return false}
+        
+       
+        //console.log(roomName)
+        //console.log(role)
+        //console.log(JSON.stringify(subroleDict))
+        
+        if (!subroleDict || !subroleDict["memory"] || !subroleDict["memory"]["energy_source"]) {
+            var energy_source=null
+        }
+        else{
+            var energy_source=subroleDict["memory"]["energy_source"]
+        }
+        creepsInQueue=_.filter(Game.spawns[spawnName].memory.creepQueue,
+            (creep)=> (!creep.memory.energy_source || creep.memory.energy_source == energy_source) &&
+                creep.memory.role==role &&
+                creep.memory.claim==roomName)
+        //console.log(creepsInQueue.length) 
+        return (creepsInQueue.length)
+    },
 
 
 };

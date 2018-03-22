@@ -1,4 +1,5 @@
 var lib=require('function.libraries');
+require('common.requests');
 
 module.exports = {
 
@@ -16,10 +17,19 @@ module.exports = {
         }
 
         var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
-        var optimalEnergyForBuild=1300
+        var optimalEnergyForBuild= (Game.spawns[spawnName].memory.creepQueue.length>10 && 1000) || 1300;
+
         if (role=="miner") {
-            // 800 for slow miner
-            optimalEnergyForBuild=1000
+            // 7xWork for fast Miner (1150 energy), 800 for slow
+            if ("fast" in subroleDict && subroleDict["fast"]){
+                optimalEnergyForBuild=1000
+            }
+            else{
+                optimalEnergyForBuild=800
+            }
+        }
+        if (role=="claimer") {
+            optimalEnergyForBuild=1300
         }
         if ("super" in subroleDict && subroleDict["super"]){
             optimalEnergyForBuild=10000;
@@ -30,29 +40,43 @@ module.exports = {
         }
         optimalEnergyForBuild=Math.min(optimalEnergyForBuild,energyForBuild);
         
-        var priority={"harvester":35,"upgrader":25,"builder":30,"miner":34,"energyHauler":32,"scout":20,"warbot":55,"claimer":33};
+        var priorityDict={"harvester":40,"upgrader":25,"builder":26,"miner":45,"energyHauler":32,"scout":10,"warbot":55,"claimer":34,"mineralHarvester":27};
         var memory={}
 
-        if (!(role in priority)){
-            priority[role]=0;
+        var priority=priorityDict[role] || 0;
+        if (roomType=="spawnRoom"){
+            priority+=5;
         }
 
         var partsArray={"basic":{"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]}};
         partsArray["energyHauler"]={"base":[CARRY,WORK,MOVE,MOVE],"add":[CARRY,MOVE]};
+        if ("noWork" in subroleDict && subroleDict["noWork"]){
+            partsArray["energyHauler"]={"base":[CARRY,MOVE],"add":[CARRY,MOVE]};
+        }
+        
+        
         partsArray["miner"]={"base":[WORK,WORK,MOVE,CARRY],"add":[WORK,WORK,MOVE]};
+        
+        partsArray["harvester"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]};
+        if (optimalEnergyForBuild>=500) {
+            partsArray["harvester"]={"base":[WORK,CARRY,MOVE],"add":[CARRY,CARRY,MOVE]};
+           }
+        if ("fast" in subroleDict && subroleDict["fast"]){
+            partsArray["harvester"]={"base":[WORK,MOVE,CARRY,MOVE],"add":[WORK,CARRY,MOVE,MOVE]};
+        }
+        
+        partsArray["mineralHarvester"]={"base":[CARRY,CARRY,MOVE],"add":[WORK,WORK,MOVE]};
 
         partsArray["warbot"]={"base":[ATTACK,MOVE],"add":[ATTACK,MOVE]};
         partsArray["claimer"]={"base":[CLAIM,MOVE],"add":[CLAIM,MOVE]};
         
         partsArray["upgrader"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]};
-        if (energyForBuild>=400) {
+        if (optimalEnergyForBuild>=500) {
             partsArray["upgrader"]={"base":[CARRY,CARRY,MOVE],"add":[WORK,WORK,MOVE]};
         }
-        
-        // Ruper roles
         if ("super" in subroleDict && subroleDict["super"]){
             partsArray["upgrader"]={"base":[WORK,WORK,CARRY,MOVE],"add":[WORK,WORK,WORK,WORK,MOVE]};
-            if (energyForBuild>=350) {
+            if (optimalEnergyForBuild>=350) {
                 partsArray["upgrader"]["base"]=[WORK,WORK,CARRY,CARRY,MOVE]
             }
         }
@@ -91,46 +115,15 @@ module.exports = {
             bodyLayout = bodyLayout.concat(add);
             fullcost+=addCost;
         }
-
-        temp=_.merge({"body":bodyLayout,"priority":priority[role],"energy":fullcost,"memory":memory},subroleDict)
+        bodyLayout.sort((p1,p2)=> bodyPartPriorityArray.indexOf(p1)-bodyPartPriorityArray.indexOf(p2))
+        temp=_.merge({"purpose":memory["role"]+"-"+memory["claim"],"body":bodyLayout,"priority":priority,"energy":fullcost,"memory":memory},subroleDict)
 
         if (!("test" in temp)) {
             Game.spawns[spawnName].memory.creepQueue.unshift(temp);
         }
 
+        console.log("Added to "+spawnName+" Q ["+Game.spawns[spawnName].memory.creepQueue.length+"] "+ lib.showCreep(temp))
 
-        result=""
-        for (i in temp){
-            if (i=="body"){
-                var bodyObj={}
-                for (let bodyItem in temp[i]){
-                    if (!(temp[i][bodyItem] in bodyObj)){
-                        bodyObj[temp[i][bodyItem]]=1
-                        
-                    }
-                    else{
-                        bodyObj[temp[i][bodyItem]]=bodyObj[temp[i][bodyItem]]+1
-                    }
-                }
-                result=" # "+result
-                for (let bodyItem in bodyObj){
-                    result=bodyItem+":"+bodyObj[bodyItem]+" "+result
-                }
-                
-                //result=temp[i]+"\n"+result
-            }
-            else if (i=="memory") {
-                result+=i+"["
-                for (let j in temp[i]){
-                    result+=j+" "+temp[i][j]+":"
-                }
-                result+="]:"
-            }
-            else {
-                result+=i+"->"+temp[i]+":"
-            }
-        }
-        console.log(result);
 
         //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))
 
@@ -138,4 +131,3 @@ module.exports = {
 
 
 };
-

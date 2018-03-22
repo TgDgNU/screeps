@@ -7,8 +7,16 @@ var findEnergyFromMemory = {
             return (false)
         }
 
-        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) { return roomEnergyObject[1]>=creep.carryCapacity && (roomEnergyObject[0]!="storage" || creep.memory.useStorage )}).
-            map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).filter(item=>item);
+        temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) {
+                return roomEnergyObject[1]>=creep.carryCapacity && (roomEnergyObject[0]!="storage" || creep.memory.useStorage )}).
+                map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).filter(item=>item);
+              
+        if (temp.length==0){
+                temp=_.filter(Memory.rooms[creep.room.name]["roomEnergyArray"],function(roomEnergyObject) {
+                return roomEnergyObject[1]>=creep.carryCapacity*0.5}).
+                map( roomEnergyObject=> Game.getObjectById(roomEnergyObject[2])).filter(item=>item);
+
+        }  
 
         if (temp.length>0) {
             var closestSource=creep.pos.findClosestByPath(temp)
@@ -18,15 +26,6 @@ var findEnergyFromMemory = {
             else {
                 return (false)
             }
-            
-            
-            //try{
-            //    closestSourceId=creep.pos.findClosestByPath(temp).id;
-            //}
-            //catch(error) {
-            //    return false
-            //}
-
             for (let i in Memory.rooms[creep.room.name]["roomEnergyArray"]){
                 if (Memory.rooms[creep.room.name]["roomEnergyArray"][i][2]==closestSourceId){
                     closestSourceIdType=Memory.rooms[creep.room.name]["roomEnergyArray"][i][0];

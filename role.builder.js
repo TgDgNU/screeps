@@ -6,7 +6,12 @@ var roleBuilder = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        energy_source=creep.memory['energy_source'];
+        if ('energy_source' in creep.memory) {
+            energy_source = creep.memory['energy_source'];
+        }
+        else{
+            energy_source =0;
+        }
         
         if (creep.memory.claim && creep.room.name != creep.memory.claim){
             creep.say("claim!")

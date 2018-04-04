@@ -1,88 +1,160 @@
 Room.prototype.hasHostiles = function (){
-    if (!("hasHostiles" in rooms[this.name])){
+    // check cached result
+	if (!("hasHostiles" in rooms[this.name])){
         rooms[this.name]["hasHostiles"]=this.find(FIND_HOSTILE_CREEPS,{filter: cr=> cr.body.some(bodyPart=>(bodyPart.type==ATTACK || bodyPart.type==RANGED_ATTACK))}).length
-        if (rooms[this.name]["hasHostiles"]>0){
-            if (!(this.name in Memory.rooms)){
-                Memory.rooms[this.name]={}
-            }
-            Memory.rooms[this.name]["hadHostiles"]=Game.time
-        }
-        else{
-            Memory.rooms[this.name]["hadHostiles"]=0;
-        }
+        Memory.rooms[this.name]["hasHostiles"]=rooms[this.name]["hasHostiles"];
     }
-
+	//if (this.name=="E3S16") {console.log(this.name+" "+rooms[this.name]["hasHostiles"]+Memory.rooms[this.name]["hasHostiles"])}
     return (rooms[this.name]["hasHostiles"])
 }
 
 Room.prototype.findStorage = function(){
-    if (!("storage" in room[this.name])){
+    if (!("storage" in rooms[this.name])){
         let temp=this.find(FIND_MY_STRUCTURES,{filter: { structureType: STRUCTURE_STORAGE }})
         if (temp.length>0){
-            room[this.name]["storage"]=temp[0]
+            rooms[this.name]["storage"]=temp[0]
         }
         else{
-            room[this.name]["storage"]=null
+            rooms[this.name]["storage"]=null
         }
     }
-    return room[this.name]["storage"]
+    return rooms[this.name]["storage"]
 }
 
 Room.prototype.manageLinks = function (){
+    let linksStorage=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
+        filter(item=>item["type"]=="linkStorage" && item["energy"]<LINK_TRESHOLD)
+    let linksController=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
+        filter(item=>item["type"]=="linkController" && item["energy"]<LINK_TRESHOLD)
+    let otherLinks=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
+        filter(item=>item["type"]=="link" && (item["energy"]>800-LINK_TRESHOLD) && Game.getObjectById(item["id"]).cooldown==0)
+//filter(item=>item["type"]=="link" && (item["energy"]>800-LINK_TRESHOLD) && Game.getObjectById(item["id"]).cooldown==0)
+
     
-    if (!("storageLink" in room[this.name])){
-        linkArray=this.find(FIND_MY_STRUCTURES,{filter:struct=>struct.structureType==STRUCTURE_LINK})
-        for (linkItem in linkArray) {
-            if (Room.prototype.findStorage() && linkArray[linkItem].isNearTo(Room.prototype.findStorage())){
-                room[this.name]["storageLink"]=linkArray[linkItem]
-            }
+    for (id in otherLinks){
+        if (linksController.length==0){break}
+        let link=Game.getObjectById(otherLinks[id]["id"])
+        let linkTo=Game.getObjectById(linksController[0]["id"])
+        let energyToTransfer=Math.min(otherLinks[id]["energy"],(800-linksController[0]["energy"]))
+        
+        result=link.transferEnergy(linkTo,energyToTransfer)
+        if (result==0){
+            rooms[this.name]["roomEnergy"][otherLinks[id]["id"]]["energy"]-=energyToTransfer
+            rooms[this.name]["roomEnergy"][linksController[0]["id"]]["energy"]+=Math.floor(energyToTransfer*0.97)
+            linksController=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
+                filter(item=>item["type"]=="linkController" && item["energy"]<LINK_TRESHOLD)
+        
         }
+        else{
+            console.log("error in manage links, transfer result "+result)
+        }
+
     }
-    if (!("storageLink" in room[this.name]) || room[this.name]["storageLink"].energy>room[this.name]["storageLink"].energyCapacity*0.7){
-        return false
-    }
-    linkArray=this.find(FIND_MY_STRUCTURES,{filter:struct=>struct.structureType==STRUCTURE_LINK && struct.id != room[this.name]["storageLink"].id})
-    for (linkItem in linkArray){
-        //if 
-    }
+
+//console.log(JSON.stringify(linksStorage))
+
+    
 }
 
 
 Room.prototype.processRoom = function(){
-            
-        // Exclude not seen rooms
-        if (!(this)) {
-            return null;
+
+        if (!(this.name) in Memory.rooms){
+            Memory.rooms[this.name]={}
+        }
+        
+		this.memory["lastSeenTime"]=Game.time;
+		
+        if (("controller" in this) && this.controller.level==1) {
+            temp=this.find(FIND_STRUCTURES,{filter: s=> !(s.my) && s.structureType !=STRUCTURE_WALL && s.structureType !=STRUCTURE_ROAD && s.structureType !=STRUCTURE_CONTAINER})
+            for ( structure in temp){
+                temp[structure].destroy()
+            }
         }
 
         this.hasHostiles()
 
-        var roomEnergyArray = [];
+        this.processRoomEnergy()
+        this.manageLinks()
 
+
+
+    }
+    
+Room.prototype.processLinks=function(){
+
+    
+}
+    
+Room.prototype.processRoomEnergy=function(){
+    /*if (res!=null){
+            Memory.rooms[rName]["roomEnergyArray"]=res;
+        }
+        else {
+            Game.notify("Error processing room "+rName)
+        }
+*/
+    if (!("roomEnergyArray" in rooms[this.name])){
+    
+        var roomEnergyArray=[]
+        var roomEnergy={}
         var dropppedEnergy = this.find(FIND_DROPPED_RESOURCES, {filter: spot => (spot.amount > 0 && spot.resourceType == RESOURCE_ENERGY)})
         for (let id in dropppedEnergy) {
             roomEnergyArray.push(["droppedEnergy", dropppedEnergy[id].amount, dropppedEnergy[id].id])
         }
 
-        var container = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_CONTAINER && structure.store.energy > 0})
+        var container = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_CONTAINER})
         for (let id in container) {
             roomEnergyArray.push(["container", container[id].store.energy, container[id].id])
         }
-        var storage = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_STORAGE && structure.store.energy > 0})
+        var storage = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_STORAGE})
         for (let id in storage) {
             roomEnergyArray.push(["storage", storage[id].store.energy, storage[id].id])
+            roomEnergy[storage[id].id]={energy:storage[id].store.energy,type:"storage"}
         }
-        //var link = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_LINK && this.findStorage() && structure.isNearTo(this.findStorage()) && structure.store.energy > 0})
-        //for (let id in link) {
-        //    roomEnergyArray.push(["linkStorage", link[id].energy, link[id].id])
-        //}
+        var terminal = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_TERMINAL})
+        for (let id in terminal) {
+            roomEnergy[terminal[id].id]={energy:terminal[id].store.energy,type:"terminal"}
+        }
+
+        let links = this.find(FIND_MY_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_LINK &&
+            structure.pos.findInRange(FIND_STRUCTURES,3,{filter:st=>st.structureType==STRUCTURE_CONTROLLER}).length>0});
+        for (let id in links) {
+            roomEnergyArray.push(["linkController", links[id].energy, links[id].id])
+            roomEnergy[links[id].id]={energy:links[id].energy,type:"linkController"}
+        }
+        
+        links = this.find(FIND_MY_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_LINK && this.findStorage() && 
+            structure.pos.isNearTo(this.findStorage()) && !(structure.id in roomEnergy)});
+        for (let id in links) {
+            roomEnergyArray.push(["linkStorage", links[id].energy, links[id].id])
+            roomEnergy[links[id].id]={energy:links[id].energy,type:"linkStorage"}
+        }
+            
+        links = this.find(FIND_MY_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_LINK && !(structure.id in roomEnergy)})
+            for (let id in links) {
+                roomEnergyArray.push(["link", links[id].energy, links[id].id])
+                roomEnergy[links[id].id]={energy:links[id].energy,type:"link"}
+            }
+        
+        var extension = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_EXTENSION})
+        for (let id in extension) {
+            roomEnergyArray.push(["extension", extension[id].energy, extension[id].id])
+        }
+        var tower = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_TOWER})
+        for (let id in tower) {
+            roomEnergyArray.push(["extension", tower[id].energy, tower[id].id])
+        }
+        var spawn = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_SPAWN})
+        for (let id in spawn) {
+            roomEnergyArray.push(["spawn", spawn[id].energy, spawn[id].id])
+        }
 
 
-        creepArray=this.find(FIND_MY_CREEPS,{filter: cr=> cr.memory.working==false && cr.memory.energySourceId});
+        creepArray=this.find(FIND_MY_CREEPS,{filter: cr=> cr.memory.energySourceId});
+
         if (creepArray.length>0){
             for (let i in creepArray){
-                //console.log(creepArray[i].name);
-
                 for (let element in roomEnergyArray){
                     if (roomEnergyArray[element][2]==creepArray[i].memory.energySourceId) {
                         roomEnergyArray[element][1] -= creepArray[i].carryCapacity - creepArray[i].carry.energy;
@@ -93,6 +165,10 @@ Room.prototype.processRoom = function(){
         }
 
 
-        return(roomEnergyArray)
-
+        //return(roomEnergyArray)
+    rooms[this.name]["roomEnergyArray"]=roomEnergyArray;
+    rooms[this.name]["roomEnergy"]=roomEnergy;
+    Memory.rooms[this.name]["roomEnergyArray"]=rooms[this.name]["roomEnergyArray"]
+    Memory.rooms[this.name]["roomEnergy"]=rooms[this.name]["roomEnergy"]
     }
+}

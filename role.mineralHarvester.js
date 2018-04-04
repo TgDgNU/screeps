@@ -18,7 +18,7 @@ var roleMineralHarvester = {
             creep.moveTo(Game.spawns[creep.memory.spawnedBy].pos,{reusePath: 50});
         }
         // in claim room and empty => look for mineral patch
-        else if((_.sum(creep.carry) < creep.carryCapacity && creep.memory.working==false) || _.sum(creep.carry) == 0 || creep.ticksToLive<35) {
+        else if(((_.sum(creep.carry) < creep.carryCapacity && creep.memory.working==false) || _.sum(creep.carry) == 0) && creep.ticksToLive>35) {
             creep.memory.working=false;
             minerals=creep.room.find(FIND_MINERALS,{filter:(m) => m.mineralAmount>0})
             // minaral patch found => gather and return to storage
@@ -36,9 +36,12 @@ var roleMineralHarvester = {
         else {
             // full and in needed room => haul to storage
             creep.memory.working=true;
-
             var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => structure.structureType==STRUCTURE_STORAGE});
+                filter: (structure) => structure.structureType==STRUCTURE_TERMINAL});
+            if (!target) {
+                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType==STRUCTURE_STORAGE});
+            }
             if(target) {
                 creep.say("Haul");
                 for(const resourceType in creep.carry) {

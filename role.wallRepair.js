@@ -2,11 +2,11 @@ var roleUpgrader = require('role.upgrader');
 var findEnergy = require('function.findEnergy');
 var findEnergyFromMemory = require('function.findEnergyFromMemory');
 
-var roleRepair = {
+var roleWallRepair = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        //creep.say("Repair")
+        //creep.say("1WallRepair")
         if ('energy_source' in creep.memory) {
             energy_source = creep.memory['energy_source'];
         }
@@ -41,8 +41,7 @@ var roleRepair = {
                 if (target.hits == target.hitsMax) { creep.memory.target=false;}
             }
             else {
-                var targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax*0.8 && object.structureType != STRUCTURE_WALL &&  object.structureType != STRUCTURE_RAMPART ||  (object.structureType== STRUCTURE_RAMPART && object.hits <2000)) });
-                if(targets.length == 0) {targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax*0.8 )});}
+                var targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax*0.8 && (object.structureType == STRUCTURE_WALL ||  object.structureType != STRUCTURE_RAMPART) ) });
                 if(targets.length == 0) {targets = creep.room.find(FIND_STRUCTURES, {filter: object => (object.hits < object.hitsMax )});}
                 if(targets.length > 0) {
 					targets.sort((a,b) => a.hits - b.hits);
@@ -67,4 +66,4 @@ var roleRepair = {
     }
 };
 
-module.exports = roleRepair;
+module.exports = roleWallRepair;

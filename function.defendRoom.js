@@ -18,30 +18,36 @@ function search_and_destroy(creep) {
     if (!creep.memory.claim) {
         creep.memory.claim=creep.room.name;
     }
-    if (creep.hits<creep.hitsMax/2){
+    if (creep.hits<creep.hitsMax*0.6){
         creep.say("Run!")
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
         if (greenFlag) {
             creep.moveTo(greenFlag.pos,{visualizePathStyle: {stroke: '#0000ff'}});
         }
         else{
-            creep.moveTo(new RoomPosition(47, 34, Game.spawns.Spawn1.room.name),{visualizePathStyle: {stroke: '#ffaa00'}})
+            creep.moveTo(new RoomPosition(25, 25, Game.spawns[creep.memory.spawnedBy].room.name),{visualizePathStyle: {stroke: '#ffaa00'}})
         }
-        if (hostile) {creep.attack(hostile);}
+        if (hostile) {creep.attack(hostile);creep.rangedAttack(hostile)}
     }
     else {
-        if (creep.borderPosition){
+        if (creep.borderPosition()){
             creep.moveTo(25,25)
         }
-        if(creep.attack(hostile) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(hostile, {visualizePathStyle: {stroke: '#ff0000'}});
-                    }
+        creep.attack(hostile)
+        creep.rangedAttack(hostile)
+        if (!creep.pos.isNearTo(hostile)){
+            
+            
+            creep.moveTo(hostile, {visualizePathStyle: {stroke: '#ff0000'}});    
+            creep.say("Charge")
+        }
+
         flags=creep.room.find(FIND_FLAGS,{filter: (flag)=> flag.room.name == creep.room.name && flag.color==COLOR_RED});
         if (!hostile && creep.memory.claim==creep.room.name && flags.length>0) {
-            creep.moveTo(flags[0].pos);
+            creep.moveTo(flags[0].pos,{reusePath: 20});
         }
         else if (!hostile && creep.memory.claim) {
-                        creep.moveTo(new RoomPosition(47, 34, creep.memory.claim))
+                        creep.moveTo(new RoomPosition(25, 25, creep.memory.claim),{reusePath: 20})
         }
     }
 }
@@ -92,6 +98,10 @@ var defendRoom = {
                 FIND_MY_CREEPS, {filter: (s) => s.memory.role =="warbot"});
             warbots.forEach(warbot => search_and_destroy(warbot));
             
+        var rangedbots = Game.rooms[roomName].find(
+                FIND_MY_CREEPS, {filter: (s) => s.memory.role =="rangedDefender"});
+            rangedbots.forEach(rangedbot => rangedbot.defendRoom());
+            
         var healbots = Game.rooms[roomName].find(
                 FIND_MY_CREEPS, {filter: (s) => s.memory.role =="healbot"});
             healbots.forEach(healbot => heal_and_stack(healbot));
@@ -100,13 +110,18 @@ var defendRoom = {
         
         var towers = Game.rooms[roomName].find(
                 FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
-        towers.filter(t=>t.energy>500).forEach(tower => tower.heal(Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: (c) => c.hits < c.hitsMax})[0]));
+        if (hostiles.length==0){
+            towers.filter(t=>t.energy>500).forEach(tower => tower.heal(Game.rooms[roomName].find(FIND_MY_CREEPS,{filter: (c) => c.hits < c.hitsMax})[0]));
+            towers.filter(t=>t.energy>500).forEach(tower => tower.repair(Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (c) => c.hits<c.hitsMax && c.hits < 1000})[0]));
+        }
         //towers.forEach(tower => tower.repair(Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (c) => c.hits < c.hitsMax && c.hits<1000})[2]));
         if(hostiles.length > 0) {
             //console.log("Creating warbot "+Game.spawns['Spawn1'].spawnCreep( [TOUGH,TOUGH,TOUGH,MOVE,MOVE,ATTACK, ATTACK, ATTACK, MOVE], 'WarBot' + Game.time,{ memory: { role: 'war',claim:roomName } } ));
             
             var username = hostiles[0].owner.username;
-            Game.notify(`User ${username} spotted in room ${roomName} number ${hostiles.length}`);
+			if (username!="Invader" && hostiles.length!=1){
+				Game.notify(`User ${username} spotted in room ${roomName} number ${hostiles.length}`);
+			}
 
             towers.forEach(tower => tower.attack(Game.rooms[roomName].find(FIND_HOSTILE_CREEPS,
                 {filter: (c) => (tower.pos.getRangeTo(c.pos)<towerRange || c.hits<c.hitsMax)})[0]));
@@ -116,15 +131,17 @@ var defendRoom = {
                 FIND_MY_CREEPS, {filter: (s) => s.memory.role =="warbot"});
             warbots.forEach(warbot => search_and_destroy(warbot));
         }
-        if(hostiles.length > 25 ||
+        try{
+        if(hostiles.length > 15 ||
             (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="spawn"}).length>0 && 
-             Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="spawn"})[0].hits <4000) ||
-            (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="tower"}).length>0 &&
-            Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="tower"})[0].energy< 50)){
+             Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="spawn"})[0].hits <4000) ){
             Game.rooms[roomName].controller.activateSafeMode()
             Game.notify("Fierce attack!! Activating safe mode! "+roomName)
-                
+                //(Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="tower"}).length>0 &&
+            //Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=>s.structureType=="tower"})[0].energy< 50)
             }
+        }
+        catch(err)  {}
     }
 };
 

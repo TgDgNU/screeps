@@ -9,7 +9,12 @@ var roleClaimer = {
         //if (creep.room.findClosestByPath())
         if (creep.room.name==creep.memory.claim){
                 if (Game.spawns[creep.memory["spawnedBy"]].memory.claim[creep.memory.claim]=="expandRoom"){
-                    result=creep.claimController(creep.room.controller);
+                    if (creep.pos.isNearTo(creep.room.controller)){
+                        result=creep.claimController(creep.room.controller);
+                    }
+                    else{
+                        result=ERR_NOT_IN_RANGE
+                    }
                 }
                 else if (creep.room.controller.reservation && creep.room.controller.reservation.username!=creep.owner.username) {
                     result=creep.attackController(creep.room.controller);

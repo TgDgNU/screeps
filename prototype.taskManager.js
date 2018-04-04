@@ -1,28 +1,50 @@
 var lib=require('function.libraries');
+var debug=1;
+
+var TaskManager=function(room){
+    this.room=room
+    this.taskQueue=this.room.memory.taskQueue|| {}
+    if (debug){console.log("init taskmanager for room "+this.room.name) }
+    //this.createTask=function(){
+    //    console.log(this.room.name)
+    //}
+    return this
+}
+
+module.exports = TaskManager
 
 
-module.exports = {
 
-    run : function(roomName,role,subroleDict) {
-
-
-        [spawnName,roomType]=lib.findSpawn(roomName);
-        if (!spawnName) { return }
-        if (!Game.spawns[spawnName].memory.creepQueue){
-            Game.spawns[spawnName].memory.creepQueue=[];
+TaskManager.prototype.createTask=function(taskType,taskPriority,taskOptions){
+    if (!taskOptions){
+        taskOptions={}
+    }
+    if (taskType=="spawnCreep"){
+        if (!("roomName" in taskOptions)){
+            taskOptions["roomName"]=this.room.name
         }
-
-        if (!subroleDict){
-            subroleDict={}
-
+        if (!("role" in taskOptions)){
+            taskOptions["role"]="upgrader"
         }
-        if (!("memory" in subroleDict)){
-            subroleDict["memory"]={}
+        if (!("subroleDict" in taskOptions)){
+            taskOptions["subroleDict"]={}
         }
+        this.taskCreateCreep(taskOptions["roomName"],taskOptions["role"],taskOptions["subroleDict"])
+    }
+    
+    this.room.memory.taskQueue=this.taskQueue
+}
 
-        var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
-        var optimalEnergyForBuild= (Game.spawns[spawnName].memory.creepQueue.length>10 && 1000) || 1300;
+TaskManager.prototype.taskCreateCreep=function(roomName,role,subroleDict) {
+        if (debug){console.log("Running taskManager for room"+roomName)}
 
+        if (!subroleDict){subroleDict={}}
+        if (!("memory" in subroleDict)){subroleDict["memory"]={}}
+
+        var energyForBuild=this.room.energyCapacityAvailable;
+        // need a filter to find spawnqueue length
+        //var optimalEnergyForBuild= (Game.spawns[spawnName].memory.creepQueue.length>10 && 1000) || 1300;
+        var optimalEnergyForBuild= 1300
         if (role=="miner") {
             // 7xWork for fast Miner (1150 energy), 800 for slow
             if ("fast" in subroleDict && subroleDict["fast"]){
@@ -37,7 +59,6 @@ module.exports = {
         }
         if ("super" in subroleDict && subroleDict["super"]){
             optimalEnergyForBuild=10000;
-            console.log(JSON.stringify(subroleDict))
             subroleDict["memory"]["useStorage"]=true;
         }
         if ("cost" in subroleDict){
@@ -50,7 +71,8 @@ module.exports = {
         var memory={}
 
         var priority=priorityDict[role] || 0;
-        if (roomType=="spawnRoom" || roomType=="expandRoom" ){
+        //if (roomType=="spawnRoom" || roomType=="expandRoom" ){
+        if (this.room.name==roomName){
             priority+=5;
         }
 
@@ -80,13 +102,13 @@ module.exports = {
         
         partsArray["upgrader"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]};
         if (optimalEnergyForBuild>=500) {
-            partsArray["upgrader"]={"base":[CARRY,CARRY,MOVE],"add":[CARRY,WORK,MOVE,WORK,WORK,MOVE]};
+            partsArray["upgrader"]={"base":[CARRY,CARRY,MOVE],"add":[WORK,WORK,MOVE]};
         }
         if ("super" in subroleDict && subroleDict["super"]){
-            //partsArray["upgrader"]={"base":[WORK,WORK,CARRY,MOVE],"add":[WORK,WORK,WORK,WORK,MOVE]};
-            //if (optimalEnergyForBuild>=350) {
-            //    partsArray["upgrader"]["base"]=[WORK,WORK,CARRY,CARRY,MOVE]
-            //}
+            partsArray["upgrader"]={"base":[WORK,WORK,CARRY,MOVE],"add":[WORK,WORK,WORK,WORK,MOVE]};
+            if (optimalEnergyForBuild>=350) {
+                partsArray["upgrader"]["base"]=[WORK,WORK,CARRY,CARRY,MOVE]
+            }
         }
         
         // fast roles
@@ -106,10 +128,11 @@ module.exports = {
 
 
 
+        memory["workRoom"]=roomName;
         memory["claim"]=roomName;
         memory["role"]=role;
         if (role=="energyHauler") {
-            memory["store_to"]=Game.spawns[spawnName].room.name;
+            memory["store_to"]=this.room.name;
         }
 
 
@@ -125,17 +148,15 @@ module.exports = {
         }
         bodyLayout.sort((p1,p2)=> bodyPartPriorityArray.indexOf(p1)-bodyPartPriorityArray.indexOf(p2))
         temp=_.merge({"purpose":memory["role"]+"-"+memory["claim"],"body":bodyLayout,"priority":priority,"energy":fullcost,"memory":memory},subroleDict)
-        //console.log(JSON.stringify(temp));
-        if (!("test" in temp)) {
-            Game.spawns[spawnName].memory.creepQueue.unshift(temp);
+        
+        let task={"type":"spawnCreep","priority":priority,"creep":temp}
+        let hash=JSON.stringify(task).hash()
+        if (!(hash in this.taskQueue)) {
+            this.taskQueue[hash]=task
+            console.log(hash)
+            //Game.spawns[spawnName].memory.creepQueue.unshift(temp);
         }
 
-        console.log("Added to "+spawnName+" Q ["+Game.spawns[spawnName].memory.creepQueue.length+"] "+ lib.showCreep(temp))
-
-
-        //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))
+        console.log("Added to "+this.room.name+" Q ["+ lib.showCreep(temp))
 
     }
-
-
-};

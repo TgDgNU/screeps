@@ -11,6 +11,7 @@ var lib=require('function.libraries');
 
 var findEnergy = {
     run: function findEnergy(creep) {
+            return;
         
             var energy_source=creep.memory.energy_source;
             if (!energy_source){
@@ -49,7 +50,7 @@ var findEnergy = {
             //}
             if (creep.memory.role=="upgrader" &&  source_storage) {
                 if(creep.withdraw(source_storage,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source_storage, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 5});
+                    creep.moveTo(source_storage, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 10});
                 }
             }
             else if ((Math.max(...range_array) < -5)  && creep.memory.role!="energyHauler" )
@@ -60,7 +61,7 @@ var findEnergy = {
                 
                 if(harvestTry  == ERR_NOT_IN_RANGE && creep.memory.role!="energyHauler") {
                     creep.say("Harvesting");
-                    creep.moveTo(sources[energy_source], {visualizePathStyle: {stroke: '#ffaa00'}});
+                    creep.moveTo(sources[energy_source], {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 20});
                 }
             
                 else if (harvestTry<0 && creep.memory.role!="energyHauler") {
@@ -75,25 +76,25 @@ var findEnergy = {
                 }
                 else if (creep.memory.role!="energyHauler") {
                     creep.say(harvestTry);
-                    creep.moveTo(sources[energy_source], {visualizePathStyle: {stroke: '#ffaa00'}});
+                    creep.moveTo(sources[energy_source], {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 20});
                 }
             }
             else if (bestpath==0){
                             creep.say("dr "+range_array[0]);
                             if(creep.pickup(source_droppped) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(source_droppped,{visualizePathStyle: {stroke: '#ffaa00'}});
+                                creep.moveTo(source_droppped,{visualizePathStyle: {stroke: '#ffaa00'},reusePath: 20});
                             }
             }
             else if (bestpath==1){
                     creep.say("nf " +Math.max(...range_array));
                     if(creep.withdraw(source_container_not_full,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(source_container_not_full, {visualizePathStyle: {stroke: '#ffaa00'}});
+                        creep.moveTo(source_container_not_full, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 20});
                     }
             }
             else if (bestpath==2) {
                             creep.say("f "+Math.max(...range_array));
                             if(creep.withdraw(source_container_full,RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(source_container_full, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 50});}
+                                creep.moveTo(source_container_full, {visualizePathStyle: {stroke: '#ffaa00'},reusePath: 20});}
             }
             return true;
     }

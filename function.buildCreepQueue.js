@@ -4,14 +4,15 @@ var createCreep=require('function.createCreep');
 module.exports = {
     run(roomName){
         //console.log(bodyPartPriorityArray)
-        var basicRoomLayout={"harvester":2,"upgrader":2,"builder":1};
-        var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot"];
+        var basicRoomLayout={"harvester":2,"upgrader":1,"builder":1};
+        var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot","wallRepair","rangedDefender"];
         var roomLayout=basicRoomLayout;
         var spawnName=lib.findSpawn(roomName)[0];
         
         if (!Game.spawns[spawnName].memory.creepQueue){
             Game.spawns[spawnName].memory.creepQueue=[];
         }
+        
         
         //stable
         var energyForBuild=Game.spawns[spawnName].room.energyCapacityAvailable;
@@ -33,26 +34,33 @@ module.exports = {
                 }
                 else if (roomType=="spawnRoom"){
                     roomLayout=basicRoomLayout;
+                    if (Game.rooms[roomName].hasHostiles()){
+                        temp=Game.rooms[roomName].find(FIND_HOSTILE_CREEPS,{filter:cr=> cr.owner.username!="Invader"})
+                        if (temp.length>0) {
+                            roomLayout["rangedDefender"]=3
+                            roomLayout["wallRepair"]=1
+                        }
+                    }
                     if (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=> s.structureType==STRUCTURE_EXTRACTOR}).length>0){
                         roomLayout["mineralHarvester"]=1
-                
+                    }
+                    if (_.filter(Game.rooms[roomName].memory.roomEnergy,s=>s["type"]=="linkController").length==0){
+                        roomLayout["upgrader"]+=2
+                        //console.log(roomName+" has no linkController, spawning more upgraders")
                     }
                 }
                 else if  (roomType=="claimRoom") {
                     roomLayout={"miner":1,"energyHauler":2}
-                    if (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd<2000){
+                    if (!(Game.rooms[roomName].controller.reservation) || Game.rooms[roomName].controller.reservation.ticksToEnd<2000){
                         roomLayout["claimer"]=1;
                         if (energyForBuild<1300){
                             roomLayout["claimer"]+=1;
                         }
                     }
-                    if (Game.spawns[spawnName].room.controller.level<=3){
-                        roomLayout={"harvester":2}
-                    }
                 }
                 else if (roomType=="expandRoom"){
                     roomLayout={"builder":2,"upgrader":2,"harvester":2}
-                    if (!Game.rooms[roomName] || !Game.rooms[roomName].controller.my){
+                    if (!(roomName in Game.rooms) || !(Game.rooms[roomName].controller.my)){
                         roomLayout["claimer"]=1;
                     }
                 }
@@ -60,10 +68,10 @@ module.exports = {
                     roomLayout["miner"]=1;
                 }
                 
-                // Emergency harvester creation (need at least 2 harvesters in each spawnRoom)
+                // Emergency harvester creation
                 if (roomType=="spawnRoom" && (_.filter(Game.creeps, (creep) => creep.memory.role=="harvester" && creep.memory.claim==roomName).length+
-                    _.filter(Game.spawns[spawnName].memory.creepQueue,(creep)=> creep.memory.role=="harvester" && creep.memory.claim==roomName && creep.priority==100).length)<2){
-                    createCreep.run(roomName,"harvester",{"cost":300,priority:100,memory:{"energy_source":energySource}});
+                    _.filter(Game.spawns[spawnName].memory.creepQueue,(creep)=> creep.memory.role=="harvester" && creep.memory.claim==roomName && creep.priority==100).length)<1){
+                    createCreep.run(roomName,"harvester",{"cost":300,priority:100,memory:{"energy_source":energySource,"useStorage":true}});
                 }    
                 
                 for (let role in roomLayout){

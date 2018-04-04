@@ -1,1 +1,5 @@
 global.bodyPartPriorityArray=[TOUGH,CARRY,WORK,ATTACK,RANGED_ATTACK,CLAIM,MOVE,HEAL];
+// links get energy if less then theshold
+global.LINK_TRESHOLD=600;
+global.STORAGE_ENERGY_TRESHOLD=500000;
+global.TERMINAL_ENERGY_TRESHOLD=500000;

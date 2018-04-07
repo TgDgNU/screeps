@@ -34,7 +34,8 @@ module.exports.loop = function () {
     Game.checkCreepInQueue=lib.checkCreepInQueue
     Game.findSpawn=lib.findSpawn
     
-
+    
+    //console.log(Game.rooms["E2S19"].getStoredEnergy())
 	//var E2S19TaskQueue=new TaskManager(Game.rooms["E2S19"])
 	//console.log(JSON.stringify(E2S19TaskQueue))
 	//E2S19TaskQueue.createTask("spawnCreep",100,{})
@@ -48,6 +49,25 @@ module.exports.loop = function () {
     //Game.spawns.Spawn5.creepQueue=[{"body":[CARRY,WORK,MOVE],"priority":45,"energy":250,"memory":{"claim":"E2S19","role":"upgrader","energy_source":"0"}}]
     
     //Game.scoutClaimRooms=scoutClaimRooms
+
+    if (Game.time%10===0){
+        terminalsArr=_.filter(Game.structures, {structureType:STRUCTURE_TERMINAL})
+        for (id in terminalsArr){
+        	if (_.sum(terminalsArr[id].store)>100000){
+            	bestOrderId=Game.market.getAllOrders(order => order.resourceType == RESOURCE_ENERGY && 		order.type == ORDER_BUY && order.amount>1000).sort((o1,o2)=>1000*o2.price/(1000+Game.market.calcTransactionCost(1000, terminalsArr[id].room.name, o2.roomName))-1000*o1.price/(1000+Game.market.calcTransactionCost(1000, terminalsArr[id].room.name, o1.roomName)))[0].id
+            	bestOrder=Game.market.getOrderById(bestOrderId)
+            	let realPrice=1000*bestOrder.price/(1000+Game.market.calcTransactionCost(1000, terminalsArr[id].room.name, bestOrder.roomName))
+            	if (realPrice>0.035 || _.sum(terminalsArr[id].store)>280000){
+                	Game.notify("Deal "+Game.market.getOrderById(bestOrderId).price+" room "+terminalsArr[id].room.name+" energy loss "+Game.market.calcTransactionCost(1000, terminalsArr[id].room.name, Game.market.getOrderById(bestOrderId).roomName ))
+                    console.log("Deal "+Game.market.getOrderById(bestOrderId).price+" room "+terminalsArr[id].room.name+" energy loss "+Game.market.calcTransactionCost(1000, terminalsArr[id].room.name, Game.market.getOrderById(bestOrderId).roomName ))
+                	Game.market.deal(bestOrderId,10000,terminalsArr[id].room.name)
+            	}
+        	}
+        }
+    }
+
+
+
 
     if (Game.time%3===0){
         if (!("containers" in Memory)){
@@ -83,16 +103,7 @@ for (let rName in Game.rooms){
 
 }
 
-for (let spawnName in Game.spawns){
-    for (let claimRoomName in Game.spawns[spawnName].memory.claim){
-        if (Game.spawns[spawnName].memory.claim[claimRoomName]=="expandRoom" && Game.rooms[claimRoomName] && Game.rooms[claimRoomName].controller.level>=3 && Game.rooms[claimRoomName].find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_SPAWN}).length>0){
-         //   Game.notify(claimRoomName+" reached level 3, now it's on it's own")
-            console.log(claimRoomName+" reached level 3, now it's on it's own")
-          //  delete(Game.spawns[spawnName].memory.claim[claimRoomName])
-        }
-        //console.log(spawnName+" "+claimRoomName+" "+Game.spawns[spawnName].memory.claim[claimRoomName])
-    }
-}
+
 
 
 
@@ -109,6 +120,19 @@ for (let spawnName in Game.spawns){
                 }
             }
         }
+        
+        // Process expandRooms
+        for (let spawnName in Game.spawns){
+            for (let claimRoomName in Game.spawns[spawnName].memory.claim){
+                if (Game.spawns[spawnName].memory.claim[claimRoomName]=="expandRoom" && Game.rooms[claimRoomName] && Game.rooms[claimRoomName].controller.level>=3 && Game.rooms[claimRoomName].find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_SPAWN}).length>0){
+                 //   Game.notify(claimRoomName+" reached level 3, now it's on it's own")
+                    console.log(claimRoomName+" reached level 3, now it's on it's own")
+                    delete(Game.spawns[spawnName].memory.claim[claimRoomName])
+                }
+                //console.log(spawnName+" "+claimRoomName+" "+Game.spawns[spawnName].memory.claim[claimRoomName])
+            }
+        }
+        
         // Process Creep Queue
         for (let spawnName in Game.spawns) {
             if (!("creepQueue" in Game.spawns[spawnName].memory)){
@@ -122,7 +146,7 @@ for (let spawnName in Game.spawns){
 
 
     // scout for rooms that are claimed but not visible
-    if ((Game.time % 1500) === 0) {
+    if (((Game.time) % 1500) === 0) {
         scoutClaimRooms()
     }
 
@@ -169,7 +193,7 @@ if ((Game.time % 600) === 0) {
 
         }
         //console.log("Checking for full storage");
-        fullStorage=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE && s.store.energy>(s.storeCapacity*0.6)})
+        fullStorage=Game.rooms[roomName].find(FIND_STRUCTURES,{filter:(s) => s.structureType==STRUCTURE_STORAGE && s.store.energy>STORAGE_ENERGY_TRESHOLD})
         if (fullStorage.length>0){
             if (lib.checkCreepInQueue(roomName,"upgrader",{"cost":1700,"super":true,"priority":39})==0){
                 Game.notify("<font color=green>Spawning additional super upgrader for room "+roomName+"</font>")
@@ -309,21 +333,29 @@ function getAllAvaibleEnergy(spawnName){
 function createGameNotification(){
     var notification=[];
     notification[0]="";
-    var spawnName;
+    var room;
     var creep;
-    for (spawnName in Game.spawns){
-        notification[notification.length-1]+="\n"+spawnName+" "+Game.spawns[spawnName].room.name;
-        notification[notification.length-1]+="\nMax Energy "+Game.spawns[spawnName].room.energyCapacityAvailable;
+	myRoomsArr=_.filter(Game.rooms,r=>r.controller.my)
+    for (i in myRoomsArr){
+		room=myRoomsArr[i]
+        notification[notification.length-1]+="\nRoom "+room.name;
+        notification[notification.length-1]+="\nMax Energy "+room.energyCapacityAvailable;
 
 
-        var controller_delta=Game.spawns[spawnName].room.controller.progress-Game.spawns[spawnName].memory.controller_progress;
-        notification[notification.length-1]+="\nController progress "+Game.spawns[spawnName].room.controller.progress+" delta "+controller_delta;
-        notification[notification.length-1]+="\nStorage "+getAllAvaibleEnergy(spawnName);;
-        Game.spawns[spawnName].memory.controller_progress=Game.spawns[spawnName].room.controller.progress;
+        let controllerDelta=room.controller.progress-_.get(room,"memory.progress.controller",0);
+		let currentEnergy=room.getStoredEnergy()
+		let storageDelta=currentEnergy-_.get(room,"memory.progress.energy",0);
+		
+        notification[notification.length-1]+="\nController progress "+room.controller.progress+" delta "+controllerDelta;
+        notification[notification.length-1]+="\nStorage "+currentEnergy+" delta "+storageDelta;
+		
+        _.set(room,"memory.progress.controller",room.controller.progress);
+		_.set(room,"memory.progress.energy",currentEnergy);
+		
         notification.push("")
     }
 
-    let creepArray=createCreepArray()
+    /*let creepArray=createCreepArray()
     
     for (let room in creepArray){
         if (lib.findSpawn(room) && lib.findSpawn(room)[1]=="spawnRoom"){
@@ -333,7 +365,7 @@ function createGameNotification(){
 			}
 		}
     }
-
+	*/
 
     return (notification);
 }

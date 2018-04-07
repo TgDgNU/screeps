@@ -23,23 +23,30 @@ Room.prototype.findStorage = function(){
 
 Room.prototype.manageLinks = function (){
     let linksStorage=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
-        filter(item=>item["type"]=="linkStorage" && item["energy"]<LINK_TRESHOLD)
+        filter(item=>item["type"]=="linkStorage" && (item["energy"]>800-LINK_TRESHOLD) && Game.getObjectById(item["id"]).cooldown==0)
     let linksController=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
         filter(item=>item["type"]=="linkController" && item["energy"]<LINK_TRESHOLD)
     let otherLinks=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
         filter(item=>item["type"]=="link" && (item["energy"]>800-LINK_TRESHOLD) && Game.getObjectById(item["id"]).cooldown==0)
 //filter(item=>item["type"]=="link" && (item["energy"]>800-LINK_TRESHOLD) && Game.getObjectById(item["id"]).cooldown==0)
 
+    //if (this.name=="E2S19"){
+    //    console.log("links")
+    //    console.log(JSON.stringify(rooms[this.name]["roomEnergy"]))
+    //    console.log(JSON.stringify(otherLinks))
+    //    console.log(JSON.stringify(otherLinks.concat(linksStorage)))
+    //}
     
-    for (id in otherLinks){
+    let sourceLinks=otherLinks.concat(linksStorage)
+    for (id in sourceLinks){
         if (linksController.length==0){break}
-        let link=Game.getObjectById(otherLinks[id]["id"])
+        let link=Game.getObjectById(sourceLinks[id]["id"])
         let linkTo=Game.getObjectById(linksController[0]["id"])
-        let energyToTransfer=Math.min(otherLinks[id]["energy"],(800-linksController[0]["energy"]))
+        let energyToTransfer=Math.min(sourceLinks[id]["energy"],(800-linksController[0]["energy"]))
         
         result=link.transferEnergy(linkTo,energyToTransfer)
         if (result==0){
-            rooms[this.name]["roomEnergy"][otherLinks[id]["id"]]["energy"]-=energyToTransfer
+            rooms[this.name]["roomEnergy"][sourceLinks[id]["id"]]["energy"]-=energyToTransfer
             rooms[this.name]["roomEnergy"][linksController[0]["id"]]["energy"]+=Math.floor(energyToTransfer*0.97)
             linksController=_.map(rooms[this.name]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
                 filter(item=>item["type"]=="linkController" && item["energy"]<LINK_TRESHOLD)
@@ -76,7 +83,9 @@ Room.prototype.processRoom = function(){
 
         this.processRoomEnergy()
         this.manageLinks()
-
+        if (this.name=="E2S19"){
+            //this.processTaskSpawning()
+        }
 
 
     }
@@ -106,7 +115,10 @@ Room.prototype.processRoomEnergy=function(){
         var container = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_CONTAINER})
         for (let id in container) {
             roomEnergyArray.push(["container", container[id].store.energy, container[id].id])
+            roomEnergy[container[id].id]={energy:container[id].store.energy,type:"container"}
         }
+		_.set(this,"memory.manage.fullContainers",container.filter(i=>i.store.energy==CONTAINER_CAPACITY).length)
+		
         var storage = this.find(FIND_STRUCTURES, {filter: structure => structure.structureType == STRUCTURE_STORAGE})
         for (let id in storage) {
             roomEnergyArray.push(["storage", storage[id].store.energy, storage[id].id])
@@ -171,4 +183,67 @@ Room.prototype.processRoomEnergy=function(){
     Memory.rooms[this.name]["roomEnergyArray"]=rooms[this.name]["roomEnergyArray"]
     Memory.rooms[this.name]["roomEnergy"]=rooms[this.name]["roomEnergy"]
     }
+}
+/*
+Room.prototype.processTasksSpawning=function(){
+    spawnList=_.filter(this.spawns,spawn=>!spawn.spawning)
+    for (let spawnNum in spawnList){
+        let spawn=spawnList[spawnNum]
+        this.taskQueue.filter(item=>item.type=="spawnCreepsort(item)
+        if (_.filter(this.taskQueue.sort(),task=>task[type]=="spawnCreep" &&))
+        
+    }
+    
+}
+*/
+
+Room.prototype.getStoredEnergy=function(){
+    var energy=0;
+    let searchStructures=this.find(FIND_STRUCTURES,{filter:
+            (s) => s.structureType== STRUCTURE_SPAWN || s.structureType== STRUCTURE_EXTENSION ||
+                s.structureType == STRUCTURE_LINK || s.structureType ==STRUCTURE_STORAGE ||
+                s.structureType ==STRUCTURE_TOWER || s.structureType==STRUCTURE_CONTAINER ||
+                s.structureType==STRUCTURE_NUKER || s.structureType==STRUCTURE_TERMINAL} )
+                
+    for (i in searchStructures) {
+            if (searchStructures[i].energy) {
+                energy+=searchStructures[i].energy;
+            }
+            else if (searchStructures[i].store){
+                energy+=searchStructures[i].store.energy;
+            }
+        }
+    
+    return(energy);
+}
+
+Room.prototype.processTaskSpawning=function(){
+    //console.log("proceed task spawning "+this.name)
+    //console.log(JSON.stringify(_.get(this,"memory.taskQueue",[]).filter(item=>item.type=="spawnCreep")))
+    //console.log(JSON.stringify(_.get(this,"memory.taskQueue",[])))
+    spawnList=this.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_SPAWN && !s.spawning})
+    for (let spawnNum in spawnList){
+        //return
+        let spawn=spawnList[spawnNum]
+        console.log("iterating spawns "+spawn)
+        
+        let sortedQ=_.get(this,"memory.taskQueue",[]).filter(item=>item.type=="spawnCreep").sort((item1,item2)=>item2.creep.priority-item1.creep.priority)
+		console.log(JSON.stringify(sortedQ))
+		if (sortedQ.length>0 && sortedQ[0].creep.energy<=this.energyAvailable){
+		    console.log("We actually spawn smth")
+		    console.log(JSON.stringify(sortedQ[0]))
+		    console.log(JSON.stringify(sortedQ[0].creep.body))
+		    console.log(JSON.stringify(sortedQ[0].creep.purpose+"-"+Game.time))
+            result=spawn.spawnCreep(sortedQ[0].creep.body,sortedQ[0].creep.purpose+"-"+Game.time,{"memory":
+                    _.merge(sortedQ[0].creep.memory,{subrole:sortedQ[0].creep.subrole,spawnedBy:spawn.name,baseRoom:this.name,"spawnTime":Game.time})});
+
+            if (result!=0) {
+                console.log("Could not spawn creep "+sortedQ[0].creep.name+" result "+result)
+            }
+            //spawn.memory.creepQueue.shift();
+            
+            console.log(spawn.name + " building "+sortedQ[0].creep.name);
+        }
+    }
+    
 }

@@ -11,7 +11,7 @@ var lib=require('function.libraries');
 
 var findEnergy = {
     run: function findEnergy(creep) {
-            return;
+            //return;
         
             var energy_source=creep.memory.energy_source;
             if (!energy_source){

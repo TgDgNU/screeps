@@ -68,9 +68,11 @@ var roleHarvester = {
                 }
             });
             if (!target){
-                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                    filter: (structure) => {return (structure.structureType == STRUCTURE_CONTAINER && structure.id in Memory.containers && 
-                        Memory.containers[structure.id]=="controller" && structure.store.energy < structure.storeCapacity-creep.carry.energy )}});
+                targetArr = _.map(creep.room.memory.roomEnergy,function(value,key){return _.merge({id:key},value)}).
+                    filter(st=>st.type=="linkStorage" && st.energy<800)
+                if (targetArr.length>0){
+                    target=Game.getObjectById(targetArr[0].id)
+                }
             }
             if (!target){
                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {

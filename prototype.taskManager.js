@@ -3,7 +3,7 @@ var debug=1;
 
 var TaskManager=function(room){
     this.room=room
-    this.taskQueue=this.room.memory.taskQueue|| {}
+    this.taskQueue=this.room.memory.taskQueue|| []
     if (debug){console.log("init taskmanager for room "+this.room.name) }
     //this.createTask=function(){
     //    console.log(this.room.name)
@@ -150,13 +150,10 @@ TaskManager.prototype.taskCreateCreep=function(roomName,role,subroleDict) {
         temp=_.merge({"purpose":memory["role"]+"-"+memory["claim"],"body":bodyLayout,"priority":priority,"energy":fullcost,"memory":memory},subroleDict)
         
         let task={"type":"spawnCreep","priority":priority,"creep":temp}
-        let hash=JSON.stringify(task).hash()
-        if (!(hash in this.taskQueue)) {
-            this.taskQueue[hash]=task
-            console.log(hash)
-            //Game.spawns[spawnName].memory.creepQueue.unshift(temp);
-        }
+        console.log(this.taskQueue)
+        this.taskQueue.push(task)
 
         console.log("Added to "+this.room.name+" Q ["+ lib.showCreep(temp))
 
     }
+    

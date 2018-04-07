@@ -4,7 +4,7 @@ var createCreep=require('function.createCreep');
 module.exports = {
     run(roomName){
         //console.log(bodyPartPriorityArray)
-        var basicRoomLayout={"harvester":2,"upgrader":1,"builder":1};
+        var basicRoomLayout={"harvester":2,"upgrader":1,"builder":1,"miner":1};
         var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot","wallRepair","rangedDefender"];
         var roomLayout=basicRoomLayout;
         var spawnName=lib.findSpawn(roomName)[0];
@@ -40,6 +40,7 @@ module.exports = {
                             roomLayout["rangedDefender"]=3
                             roomLayout["wallRepair"]=1
                         }
+
                     }
                     if (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=> s.structureType==STRUCTURE_EXTRACTOR}).length>0){
                         roomLayout["mineralHarvester"]=1
@@ -48,10 +49,17 @@ module.exports = {
                         roomLayout["upgrader"]+=2
                         //console.log(roomName+" has no linkController, spawning more upgraders")
                     }
+                    //if (_.get(Game.rooms[roomName],"memory.manage.fullContainers",0)){
+                    //    roomLayout["upgrader"]+=2*_.get(Game.rooms[roomName],"memory.manage.fullContainers",0)
+                    //    //console.log(roomName+" has no linkController, spawning more upgraders")
+                    //}
+                    if (Game.rooms[roomName].find(FIND_SOURCES).length==1 && "harvester" in roomLayout){
+                        roomLayout["harvester"]+=1;
+                    }
                 }
                 else if  (roomType=="claimRoom") {
                     roomLayout={"miner":1,"energyHauler":2}
-                    if (!(Game.rooms[roomName].controller.reservation) || Game.rooms[roomName].controller.reservation.ticksToEnd<2000){
+                    if (!(Game.rooms[roomName].controller.reservation) || Game.rooms[roomName].controller.reservation.ticksToEnd<3000){
                         roomLayout["claimer"]=1;
                         if (energyForBuild<1300){
                             roomLayout["claimer"]+=1;
@@ -64,8 +72,9 @@ module.exports = {
                         roomLayout["claimer"]=1;
                     }
                 }
-                if (energyForBuild>=350 && !("miner" in roomLayout)){
-                    roomLayout["miner"]=1;
+                //console.log("!")
+                if (Game.spawns[spawnName].room.energyCapacityAvailable<800 && ("miner" in roomLayout)){
+                    roomLayout["miner"]+=1;
                 }
                 
                 // Emergency harvester creation

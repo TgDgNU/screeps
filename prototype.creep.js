@@ -95,9 +95,14 @@ Creep.prototype.getHaulTarget=function () {
             filter(structure=>
                 structure["type"]=="storage" ||
                 ((structure["type"]=="link" && 800-structure["energy"])>this.carry.energy) ||
-                (structure["type"]=="terminal" && structure["energy"]<100000)
+                (structure["type"]=="terminal" && structure["energy"]<TERMINAL_ENERGY_TRESHOLD)
             )
         
+        if (arrayToHaulTo.length==0){
+            arrayToHaulTo=_.map(rooms[this.baseRoom()]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
+                filter(structure=>
+                    structure["type"]=="container" || structure["type"]=="terminal" || structure["type"]=="storage")
+        }
         
         
         //.filter(structure=> structure[0]=="storage" || ((structure[0]=="link" && 800-structure[1])>this.carry.energy))

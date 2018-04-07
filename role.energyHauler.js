@@ -12,7 +12,7 @@ var roleEnergyHauler = {
             energy_source =0;
         }
 
-        if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
+        if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim && !creep.memory.energySourceId){
             creep.say("Rharvest!")
             creep.moveTo(new RoomPosition(25, 20, creep.memory.claim),{reusePath: 30});
         }

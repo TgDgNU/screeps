@@ -46,7 +46,7 @@ module.exports = {
         }
         optimalEnergyForBuild=Math.min(optimalEnergyForBuild,energyForBuild);
         
-        var priorityDict={"rangedDefender":39,"wallRepair":38,"harvester":40,"upgrader":30,"builder":31,"miner":45,"energyHauler":32,"scout":10,"warbot":55,"claimer":34,"mineralHarvester":27};
+        var priorityDict={"rangedDefender":39,"wallRepair":38,"harvester":40,"upgrader":30,"builder":38,"miner":45,"energyHauler":34,"scout":10,"warbot":55,"claimer":33,"mineralHarvester":27};
         var memory={}
 
         var priority=priorityDict[role] || 0;
@@ -79,7 +79,7 @@ module.exports = {
         partsArray["claimer"]={"base":[CLAIM,MOVE],"add":[CLAIM,MOVE]};
         
         partsArray["upgrader"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]};
-        if (optimalEnergyForBuild>=500) {
+        if (optimalEnergyForBuild>=600) {
             partsArray["upgrader"]={"base":[CARRY,CARRY,MOVE],"add":[CARRY,WORK,MOVE,WORK,WORK,MOVE]};
         }
         if ("super" in subroleDict && subroleDict["super"]){
@@ -130,7 +130,7 @@ module.exports = {
             Game.spawns[spawnName].memory.creepQueue.unshift(temp);
         }
 
-        console.log("Added to "+spawnName+" Q ["+Game.spawns[spawnName].memory.creepQueue.length+"] "+ lib.showCreep(temp))
+        //console.log("Added to "+spawnName+" Q ["+Game.spawns[spawnName].memory.creepQueue.length+"] "+ lib.showCreep(temp))
 
 
         //return(_.merge({:,"role":role,"priority":priority[role]},subroleArray))

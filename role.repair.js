@@ -55,6 +55,10 @@ var roleRepair = {
             }
             if (typeof target !== typeof undefined) { if(creep.repair(target) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
+                    bTarget=creep.pos.findInRange(FIND_STRUCTURES,3,{filter: (s) => s.hits < s.hitsMax && s.structureType!=STRUCTURE_WALL}).sort((a,b) => a.hits/a.hitsMax - b.hits/b.hitsMax);;
+                    if (bTarget.length>0){
+                        creep.repair(bTarget[0]);
+                    }
                 }
 
             }

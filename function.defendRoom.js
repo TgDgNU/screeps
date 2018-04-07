@@ -18,7 +18,7 @@ function search_and_destroy(creep) {
     if (!creep.memory.claim) {
         creep.memory.claim=creep.room.name;
     }
-    if (creep.hits<creep.hitsMax*0.6){
+    if (creep.hits<creep.hitsMax*0.4){
         creep.say("Run!")
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
         if (greenFlag) {

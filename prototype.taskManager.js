@@ -1,15 +1,89 @@
 var lib=require('function.libraries');
-var debug=1;
+var debug=0;
 
-var TaskManager=function(room){
-    this.room=room
-    this.taskQueue=this.room.memory.taskQueue|| []
-    if (debug){console.log("init taskmanager for room "+this.room.name) }
-    //this.createTask=function(){
-    //    console.log(this.room.name)
-    //}
+var TaskManager=function(base){
+    this.base=base
+    this.taskQueue=this.base.memory.taskQueue|| []
+    
+    if (debug){console.log("init taskmanager for room "+this.base.name) }
+
     return this
 }
+
+TaskManager.prototype.findTask=function(creep){
+    console.log("taskmanager start find task for creep"+creep.name)
+    
+    if (_.get(creep.memory,"role")=="energyHauler"){
+        // search for containers
+        for (container in _.get(this.base,"memory.database.energy.containers",{})){
+            console.log(container)
+            if (Game.getObjectById(container) &&
+                (Game.getObjectById(container).store.energy-_.get(this.base,"memory.database.energy.containers."+container+".reserved",0))>creep.carryCapacity-_.sum(creep.carry)){
+                console.log("container "+container+" needs a hauler")
+                this.assignTask(creep,{type:"haulFrom",target:container,options:{}})
+                return
+            }
+        }
+    }
+    
+}
+
+
+TaskManager.prototype.assignTask=function(creep,task){
+    console.log("taskmanager start assign task for creep"+creep.name)
+    console.log(JSON.stringify(task))
+    creep.taskManager=this
+    if (task.type=="haulFrom"){
+        creep.memory.tasks=[task]
+        _.set(this.base.memory.database.energy.containers[task["target"]],"reserved",_.get(this.base.memory.database.energy.containers[task["target"]],"reserved",0)+creep.carryCapacity)
+        
+    }
+    
+}
+
+TaskManager.prototype.abandonTask=function(creep,task){
+    console.log("taskmanager start deassiging task for creep"+creep.name)
+    console.log(JSON.stringify(task))
+    if (task.type=="haulFrom"){
+        creep.memory.tasks=[task]
+        console.log(this.base.memory.database.energy)
+        _.set(this.base.memory.database.energy.containers[task["target"]],"reserved")=_.get(this.base.memory.database.energy.containers[task["target"]],0)-creep.carry.energy
+        
+    }
+    
+}
+
+
+TaskManager.prototype.emptyStore=function(creep){
+    console.log("taskmanager start emptystore "+this.base.name)
+    
+    harvesters=_.filter(Game.creeps,c=>_.get(c.memory,"baseName")==this.base.name && _.get(c.memory,"role")=="harvester" && _.get(c.memory,"tasks").length==0 )
+    console.log(harvesters.length)
+    console.log(this.base.name)
+    
+    for (creep of harvesters){
+        console.log(creep.name)
+        creep.memory.tasks.push({"type":"haulFrom",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_STORAGE})[0].id, options:{resourceType:"energy"}});
+        creep.memory.tasks.push({"type":"haulTo",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_TERMINAL})[0].id});
+        creep.memory.tasks.push({"type":"haulFrom",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_STORAGE})[0].id, options:{resourceType:"energy"}});
+        creep.memory.tasks.push({"type":"haulTo",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_TERMINAL})[0].id});
+        creep.memory.tasks.push({"type":"haulFrom",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_STORAGE})[0].id, options:{resourceType:"energy"}})
+        creep.memory.tasks.push({"type":"haulTo",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_TERMINAL})[0].id});
+        creep.memory.tasks.push({"type":"haulFrom",target:creep.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_STORAGE})[0].id, options:{resourceType:"energy"}})
+    }
+    
+}
+
+TaskManager.prototype.storeEnergy=function(){
+    console.log("taskmanager start store energy")
+    for (creep of _.filter(Game.creeps,c=>_.get(c.memory,"baseName")==this.base.name && _.get(c.memory,"role")=="energyHauler" )){
+        console.log(creep.name)
+    }
+    
+    
+    
+}
+
 
 module.exports = TaskManager
 

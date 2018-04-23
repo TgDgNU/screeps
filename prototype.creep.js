@@ -20,11 +20,11 @@ Creep.prototype.getEnergy=function(target,amount){
     if ("resourceType" in target ){
         return(this.pickup(target,RESOURCE_ENERGY))
     }
-    if (target.structureType==STRUCTURE_STORAGE || target.structureType==STRUCTURE_CONTAINER || target.structureType==STRUCTURE_LINK ) {
+    if (target.structureType==STRUCTURE_STORAGE || target.structureType==STRUCTURE_CONTAINER ||target.structureType==STRUCTURE_LINK ) {
         return(this.withdraw(target,RESOURCE_ENERGY))
     }
     else {
-        console.log("unknown harvest type for "+this.name)
+        //console.log("unknown harvest type for "+this.name)
         return(this.withdraw(target,RESOURCE_ENERGY))
     }
 }
@@ -78,43 +78,44 @@ Creep.prototype.flee=function () {
     return false
 }
 
-Creep.prototype.getHaulTarget=function () {
+Creep.prototype.getHaulTarget=function (debug) {
     if ("haulTo" in this.memory && Game.getObjectById(this.memory["haulTo"]))  {
         
-        //console.log(Game.getObjectById(this.memory["haulTo"]))
+        if (debug){console.log(Game.getObjectById(this.memory["haulTo"]))}
         return (Game.getObjectById(this.memory["haulTo"]))
         
     }
     else {
-        if (!rooms || !(this.baseRoom() in rooms) || !("roomEnergyArray" in rooms[this.baseRoom()]) ){
-            this.room.processRoom()
-        }
+        //console.log("search")
+        
+        var base=this.room.base || Game.rooms[this.memory.baseRoom].base
 
-        //arrayToHaulTo=rooms[this.baseRoom()]["roomEnergyArray"].filter(structure=> structure[0]=="storage" || ((structure[0]=="link" && 800-structure[1])>this.carry.energy))
-        arrayToHaulTo=_.map(rooms[this.baseRoom()]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
-            filter(structure=>
-                structure["type"]=="storage" ||
-                ((structure["type"]=="link" && 800-structure["energy"])>this.carry.energy) ||
-                (structure["type"]=="terminal" && structure["energy"]<TERMINAL_ENERGY_TRESHOLD)
-            )
         
-        if (arrayToHaulTo.length==0){
-            arrayToHaulTo=_.map(rooms[this.baseRoom()]["roomEnergy"],function(value,key){return _.merge({id:key},value)}).
-                filter(structure=>
-                    structure["type"]=="container" || structure["type"]=="terminal" || structure["type"]=="storage")
+        if (!base) {
+            console.log("No base for creep "+this.name)
+            return false
+        }
+        var target=false
+        
+        if (base.storage) {
+            target=base.storage
+            if (base.terminal && _.sum(base.terminal.store)/300000 < _.sum(base.storage.store)/1000000) {
+                target=base.terminal
+            }
+        }
+        //console.log(this.room.name+" "+target)
+        //if (base.terminal){
+        //    target=base.terminal
+        //}
+        //console.log(base.links.concat([target]))
+        let unsafeTarget=this.pos.findClosestByPath(_.filter(base.links,link=>link.energy<800).concat([target]))
+        if (unsafeTarget) {
+            target=unsafeTarget
         }
         
-        
-        //.filter(structure=> structure[0]=="storage" || ((structure[0]=="link" && 800-structure[1])>this.carry.energy))
-
-        if (arrayToHaulTo.length>0){
-            return (this.pos.findClosestByPath(arrayToHaulTo.map(s=>Game.getObjectById(s["id"]))))
-        }
-        
-        console.log("Error finding haul target in room"+this.room.name)
-        return null
+        //console.log(this.name+" "+target)
+        return target
     }
-        
     
 }
 
@@ -122,4 +123,9 @@ Creep.prototype.getHaulTarget=function () {
 
 Creep.prototype.execute = function () {
     //TODO
+}
+
+
+Creep.prototype.effectiveHits= function(){
+    this.hits+_.get(this,"incomingHits",0)
 }

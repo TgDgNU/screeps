@@ -4,10 +4,12 @@ var createCreep=require('function.createCreep');
 module.exports = {
     run(roomName){
         //console.log(bodyPartPriorityArray)
-        var basicRoomLayout={"harvester":2,"upgrader":1,"builder":1,"miner":1};
-        var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot","wallRepair","rangedDefender"];
+        var basicRoomLayout={"harvester":1,"upgrader":2,"builder":1,"miner":1};
+        var noEnergySourceRoles=["claimer","builder","mineralHarvester","warbot","healbot","wallRepair","rangedDefender","upgrader"];
         var roomLayout=basicRoomLayout;
         var spawnName=lib.findSpawn(roomName)[0];
+        var subroleDict={}
+        
         
         if (!Game.spawns[spawnName].memory.creepQueue){
             Game.spawns[spawnName].memory.creepQueue=[];
@@ -25,15 +27,15 @@ module.exports = {
 
         if (spawnName){
             creepArray=createCreepArray();
+            subroleDict["level"]=Game.spawns[spawnName].room.controller.level;
+            //console.log(JSON.stringify(subroleDict))
             if (!(creepArray[roomName])){
                 creepArray[roomName]={}
             }
             for (let energySource in Game.rooms[roomName].find(FIND_SOURCES)){
-                if (roomType=="spawnRoom" && Memory["rooms"][roomName]["sources"][energySource]["space"]<=1 ){
-                    //roomLayout={"miner":1};
-                }
-                else if (roomType=="spawnRoom"){
+                if (roomType=="spawnRoom"){
                     roomLayout=basicRoomLayout;
+                    
                     if (Game.rooms[roomName].hasHostiles()){
                         temp=Game.rooms[roomName].find(FIND_HOSTILE_CREEPS,{filter:cr=> cr.owner.username!="Invader"})
                         if (temp.length>0) {
@@ -42,20 +44,29 @@ module.exports = {
                         }
 
                     }
+                    if ((Game.rooms[roomName].controller.level==6 || Game.rooms[roomName].controller.level==7) && Game.rooms[roomName].base.terminal){
+                        roomLayout["upgrader"]+=1;
+                    }
+
+                    if (Game.rooms[roomName].controller.level==8){
+                        roomLayout={"harvester":1,"upgrader":1,"builder":1,"miner":1};
+                        
+                        //console.log(roomName)
+                    }
+					
+					if (_.get(Game.rooms[roomName],"memory.status.starving")==true){
+						roomLayout["upgrader"]-=1;
+					}
+                    
+
                     if (Game.rooms[roomName].find(FIND_MY_STRUCTURES,{filter: (s)=> s.structureType==STRUCTURE_EXTRACTOR}).length>0){
                         roomLayout["mineralHarvester"]=1
                     }
-                    if (_.filter(Game.rooms[roomName].memory.roomEnergy,s=>s["type"]=="linkController").length==0){
-                        roomLayout["upgrader"]+=2
-                        //console.log(roomName+" has no linkController, spawning more upgraders")
-                    }
-                    //if (_.get(Game.rooms[roomName],"memory.manage.fullContainers",0)){
-                    //    roomLayout["upgrader"]+=2*_.get(Game.rooms[roomName],"memory.manage.fullContainers",0)
-                    //    //console.log(roomName+" has no linkController, spawning more upgraders")
-                    //}
                     if (Game.rooms[roomName].find(FIND_SOURCES).length==1 && "harvester" in roomLayout){
                         roomLayout["harvester"]+=1;
                     }
+                    
+                    
                 }
                 else if  (roomType=="claimRoom") {
                     roomLayout={"miner":1,"energyHauler":2}
@@ -64,10 +75,12 @@ module.exports = {
                         if (energyForBuild<1300){
                             roomLayout["claimer"]+=1;
                         }
+
+
                     }
                 }
                 else if (roomType=="expandRoom"){
-                    roomLayout={"builder":2,"upgrader":2,"harvester":2}
+                    roomLayout={"builder":1,"upgrader":2,"harvester":1,"miner":1}
                     if (!(roomName in Game.rooms) || !(Game.rooms[roomName].controller.my)){
                         roomLayout["claimer"]=1;
                     }
@@ -93,11 +106,11 @@ module.exports = {
                         }
                         if (noEnergySourceRoles.some(R => R==role)){
                             //console.log("No energySource " + role)
-                            createCreep.run(roomName,role,{"fast":fast,memory:{}});
+                            createCreep.run(roomName,role,_.merge({"fast":fast,memory:{}},subroleDict));
                         }
                         else{
                             //console.log("W energySource " + role)
-                            createCreep.run(roomName,role,{"fast":fast,memory:{"energy_source":energySource}});
+                            createCreep.run(roomName,role,_.merge({"fast":fast,memory:{"energy_source":energySource}},subroleDict));
                         }
 
                     }

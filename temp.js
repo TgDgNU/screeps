@@ -5,36 +5,12 @@ var findEnergyFromMemory = require('function.findEnergyFromMemory');
 
 var roleEnergyHauler = {
     run: function(creep) {
-        
-        var base=Game.rooms[creep.memory.baseRoom].base
-        if (!creep.memory.store_to) {
-            creep.memory.store_to=creep.memory.baseRoom
-        }
-        
-        
         if ('energy_source' in creep.memory) {
             energy_source = creep.memory['energy_source'];
         }
         else{
             energy_source =0;
         }
-        if( creep.carry.energy > creep.carryCapacity*0.5) {
-            creep.memory.working=true;
-            creep.memory.energySourceId=null;
-        }
-        
-        //creep.memory.tasks=[]
-        if (creep.memory.tasks.length!=0){
-            console.log("Creep "+creep.name+" working on task")
-            creep.executeTask()
-            return
-        }
-        
-        if (!creep.memory.working && (creep.name=="energyHauler-Spawn8-E5S18-5336151" || creep.name=="energyHauler-Spawn3-E4S17-5334849"|| creep.name=="energyHauler-Spawn3-E3S16-5335119")) {
-            console.log("creep lf task "+creep.name)
-            base.taskManager.findTask(creep)
-        }
-        
 
         if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim && !creep.memory.energySourceId){
             creep.say("Rharvest!")
@@ -81,7 +57,7 @@ var roleEnergyHauler = {
                 creep.say(temp.id)
                 creep.memory["haulTo"]=temp.id
                 if (!(creep.pos.isNearTo(temp))){
-                    creep.moveTo(temp,{reusePath: 20,range:1})
+                    creep.moveTo(temp,{reusePath: 20})
                 }
                 else{
                     creep.transfer(temp,RESOURCE_ENERGY)
@@ -90,24 +66,38 @@ var roleEnergyHauler = {
                 }
             }
             else {
-                //creep.drop(RESOURCE_ENERGY)
-                console.log("<font color=red>"+creep.name+" wants to drop energy - nowhere to haul - tries "+_.get(creep.memory,"intentToDropEnergy",0)+"</font>")
-                //Game.notify(creep.name+" wants to drop energy - nowhere to haul")
-                //console.log(creep.room.name)
-                //console.log(creep.memory["haulTo"])
-                //console.log(temp)
-                _.set(creep.memory,"intentToDropEnergy",_.get(creep.memory,"intentToDropEnergy",0)+1)
-                if (_.get(creep.memory,"intentToDropEnergy",0)>20){
-                    creep.drop(RESOURCE_ENERGY)
-                    _.set(creep.memory,"intentToDropEnergy",0)
-                    console.log("<font color=red>"+creep.name+" dropped energy - nowhere to haul</font>")
-                    Game.notify("<font color=red>"+creep.name+" dropped energy - nowhere to haul</font>")
-                }
-                // for debug
-                //creep.getHaulTarget(true)
-                //creep.memory["haulTo"]=""
+                creep.drop(RESOURCE_ENERGY)
+                console.log("<font color=red>"+creep.name+" had to drop energy - nowhere to haul</font>")
+                console.log(creep.room.name)
+                console.log(creep.memory["haulTo"])
+                console.log(temp)
+                creep.memory["haulTo"]=""
             }
- 
+            /*
+            
+            var target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return (((structure.structureType == STRUCTURE_EXTENSION ||
+                        structure.structureType == STRUCTURE_SPAWN ||
+                        structure.structureType==STRUCTURE_TOWER) &&
+                              structure.energy < structure.energyCapacity) ||
+                        (structure.structureType==STRUCTURE_CONTAINER && structure.store.energy <structure.storeCapacity && !(structure.id in Memory.containers && Memory.containers[structure.id]=="mine")) ||
+                        (structure.structureType==STRUCTURE_STORAGE && structure.store.energy <structure.storeCapacity)
+                        );
+                }
+});
+            if (creep.memory.claim==creep.memory.store_to){
+                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => structure.structureType==STRUCTURE_STORAGE && structure.store.energy <structure.storeCapacity})
+            }
+            // if found suitable target - transfer or move to it. If not found - target = null
+            if(target) {
+                creep.say("Haul");
+                if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target, {visualizePathStyle: {stroke: '#fff902'}});
+                }
+            }  
+            */
         }
         
         // if out of energy > go gather some
@@ -115,7 +105,10 @@ var roleEnergyHauler = {
             creep.memory.working=false;
 
         }
-
+        if( creep.carry.energy > creep.carryCapacity*0.5) {
+            creep.memory.working=true;
+            creep.memory.energySourceId=null;
+        }
     }
 };
 

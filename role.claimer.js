@@ -7,8 +7,11 @@ var roleClaimer = {
     run: function(creep) {
         //creep.say("I what");
         //if (creep.room.findClosestByPath())
+        
+        workRoom=Game.rooms[creep.memory.claim]
+        
         if (creep.room.name==creep.memory.claim){
-                if (Game.spawns[creep.memory["spawnedBy"]].memory.claim[creep.memory.claim]=="expandRoom"){
+                if ("claim"  in  Game.spawns[creep.memory["spawnedBy"]].memory && Game.spawns[creep.memory["spawnedBy"]].memory.claim[creep.memory.claim]=="expandRoom"){
                     if (creep.pos.isNearTo(creep.room.controller)){
                         result=creep.claimController(creep.room.controller);
                     }
@@ -30,7 +33,12 @@ var roleClaimer = {
         }
         else {
             creep.say("claim!")
-            creep.moveTo(new RoomPosition(25, 20, creep.memory.claim));
+            if (workRoom){
+                creep.moveTo(workRoom.controller, {visualizePathStyle: {stroke: '#ffaa00'}});
+            }
+            else{
+                creep.moveTo(new RoomPosition(25, 20, creep.memory.claim));
+            }
         }
 
     }

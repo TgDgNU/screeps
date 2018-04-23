@@ -7,6 +7,13 @@ var roleMineralHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        minerals=creep.room.find(FIND_MINERALS,{filter:(m) => m.mineralAmount>0})
+        if (minerals.length==0){
+            roleBuilder.run(creep)
+            //console.log("running builder")
+            return;
+        }
+            
         // empty and not in claim room => go there
         if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
             creep.say("To "+creep.memory.claim)
@@ -31,6 +38,7 @@ var roleMineralHarvester = {
             else{
                 // if no minerals found go do something else, best - upgrading
                 roleUpgrader.run(creep)
+                console.log("running upgrader")
             }
         }
         else {

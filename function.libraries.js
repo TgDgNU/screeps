@@ -145,7 +145,7 @@ module.exports = {
         if ("subrole" in creep["memory"]){
             subrole=creep["memory"]["subrole"]+"-";
         }
-        return (creep["memory"]["role"]+"-"+subrole+creep["memory"]["claim"]+"-"+Game.time);
+        return (creep["memory"]["role"]+"-"+subrole+creep.memory.spawnedBy+"-"+creep["memory"]["claim"]+"-"+Game.time);
     },
     
     checkCreepInQueue : function(roomName,role,subroleDict){

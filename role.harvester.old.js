@@ -1,6 +1,5 @@
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
-var roleEnergyHauler=require('role.energyHauler')
 var findEnergy = require('function.findEnergy');
 var findEnergyFromMemory = require('function.findEnergyFromMemory');
 
@@ -8,7 +7,6 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        
         if ('energy_source' in creep.memory) {
             energy_source = creep.memory['energy_source'];
         }
@@ -20,11 +18,7 @@ var roleHarvester = {
             creep.executeTask()
             return
         }
-        if (creep.room.energyAvailable==creep.room.energyCapacityAvailable){
-            //console.log("creep урфгдштп "+creep.room.name)
-            //roleEnergyHauler.run(creep)
-            //return;
-        }
+        
         // pillage remote rooms
         
         if (!creep.memory.working && creep.memory.claim && creep.room.name!=creep.memory.claim){
@@ -91,7 +85,7 @@ var roleHarvester = {
             if (!target){
                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (structure) => {return (structure.structureType == STRUCTURE_STORAGE 
-                        && _.sum(structure.store) < structure.storeCapacity*0.9)}});
+                        && structure.store.energy < structure.storeCapacity*0.9)}});
             }
             // if found suitable target - transfer or move to it. If not found - target = null
             

@@ -5,6 +5,15 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+		var testCreep="upgrader-Spawn2-E7S18-5283618"
+		if (creep.name==testCreep){
+			console.log("test upgrader "+Game.time+" "+creep.carry.energy)
+			//console.log(_.filter(creep.body,b=>b.type==WORK).length)
+			//console.log(creep.memory.energySourceId)
+		}
+	
+	
+	
         if ('energy_source' in creep.memory) {
             energy_source = creep.memory['energy_source'];
         }
@@ -32,27 +41,44 @@ var roleUpgrader = {
             if(!creep.memory.working && creep.carry.energy >= creep.carryCapacity*0.5) {
                 creep.memory.working = true;
                 creep.say('upgrade');
-                creep.memory.energySourceId=null
+                //creep.memory.energySourceId=null
             }
     
     
             if(creep.memory.working) {
                 if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
-                    //bTarget=creep.pos.findInRange(FIND_STRUCTURES,3,{filter: (s) => s.hits < (s.hitsMax)}).sort((a,b) => a.hits/a.hitsMax - b.hits/b.hitsMax);;
-                    //if (bTarget.length>0){
-                    //    creep.repair(bTarget[0]);
-                    //}
                 }
+				else if (creep.carry.energy<=_.filter(creep.body,b=>b.type==WORK).length){
+
+					let result=creep.getEnergy(Game.getObjectById(creep.memory.energySourceId))
+					
+//					if (creep.name==testCreep){
+//						console.log("!!!!")
+//						console.log(_.filter(creep.body,b=>b.type==WORK).length)
+//						console.log(creep.memory.energySourceId)
+//						console.log("result: "+result)
+//					}
+					
+					if (result!=0){
+						creep.memory.energySourceId=null
+					}
+				}
             }
             else {
                     
                 if (creep.memory.energySourceId || findEnergyFromMemory.run(creep)){
+
                     result=creep.getEnergy(Game.getObjectById(creep.memory.energySourceId))
+//					if (creep.name==testCreep){
+//						console.log("got energySource")
+//						console.log(creep.memory.energySourceId)
+//						console.log("getenergy result:"+result)
+//					}
                     if ( result== ERR_NOT_IN_RANGE){
                         creep.moveTo(Game.getObjectById(creep.memory.energySourceId),{visualizePathStyle: {stroke: '#00ff00'},reusePath: 50})
                     }
-                    else if (!result || result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
+                    else if (result!=0|| result == ERR_INVALID_TARGET || result == ERR_NOT_ENOUGH_RESOURCES){
                         creep.memory.energySourceId=null
                     }
 

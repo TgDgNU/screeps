@@ -10,6 +10,7 @@ var roleMiner = {
         if (creep.spawning){
             return
         }
+        workRoom=Game.rooms[creep.memory.claim]
 
         if ('energy_source' in creep.memory) {
             energy_source = creep.memory['energy_source'];
@@ -18,7 +19,7 @@ var roleMiner = {
             energy_source =0;
         }
 
-        if (creep.memory.claim && creep.room.name != creep.memory.claim){
+        if (!workRoom && creep.memory.claim && creep.room.name != creep.memory.claim){
             creep.say("claim!")
             creep.moveTo(new RoomPosition(25, 20, creep.memory.claim));
             
@@ -26,7 +27,7 @@ var roleMiner = {
         else {
                 
             
-            var sources = creep.room.find(FIND_SOURCES);
+            var sources = workRoom.find(FIND_SOURCES);
                 // coming to mining site
                 if(creep.harvest(sources[energy_source]) == ERR_NOT_IN_RANGE ||
                     creep.harvest(sources[energy_source]) == ERR_NOT_ENOUGH_RESOURCES ) {
@@ -50,7 +51,7 @@ var roleMiner = {
                         }
                         // repair if needed
                         if (nearest_containers[0].hits<nearest_containers[0].hitsMax*0.9) {
-                            if (creep.carryCapacity>0 && creep.carry.energy==creep.carryCapacity){
+                            if (creep.carryCapacity>0 && creep.carry.energy>creep.getActiveBodyparts(WORK)){
                                 creep.repair(nearest_containers[0]);
                                 creep.say("Repair")
                             }
@@ -64,9 +65,10 @@ var roleMiner = {
                                 creep.pickup(nearestDroppedEnergy[0])
                                 if (nearestDroppedEnergy[0].amount>1000 && (!("calledAHauler" in creep.memory) || Game.time-creep.memory["calledAHauler"]>600) && Game.rooms[creep.baseRoom()].find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_STORAGE}).length>0){
                                     let temp_need_haulers=(nearestDroppedEnergy[0].amount-1000)/2000
-                                    for (let i=0; i<temp_need_haulers;i++){
-                                        if (lib.checkCreepInQueue(creep.room.name,"energyHauler",{"priority":19,"fast":true,"noWork":true,"claim":creep.room.name,"energy_source":energy_source})<temp_need_haulers){
-                                            createCreep.run(creep.room.name,"energyHauler",{"priority":19,"fast":true,"claim":creep.room.name,"energy_source":energy_source});
+                                    //for (let i=0; i<temp_need_haulers;i++){
+                                    for (let i=0; i<1;i++){
+                                        if (lib.checkCreepInQueue(workRoom.name,"energyHauler",{"priority":19,"fast":true,"noWork":true,"claim":workRoom.name,"energy_source":energy_source})<temp_need_haulers){
+                                            createCreep.run(workRoom.name,"energyHauler",{"priority":19,"fast":true,"claim":workRoom.name,"energy_source":energy_source});
                                             console.log("<font color=green>"+creep.name+" called a hauler from "+creep.memory.spawnedBy+"</font>")
                                         }
                                         else {
@@ -87,7 +89,7 @@ var roleMiner = {
                         if (nearest_containers.length>0){
 
                             creep.moveTo(nearest_containers[0]);
-                            if (creep.carryCapacity>0 && creep.carry.energy==creep.carryCapacity){
+                            if (creep.carryCapacity>0 && (creep.carry.energy==creep.carryCapacity || creep.carry.energy>creep.getActiveBodyparts(WORK)*5)){
                                 creep.build(nearest_containers[0])
                             }
                         }

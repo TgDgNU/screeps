@@ -37,13 +37,15 @@ module.exports = {
             spawn.memory.creepQueue.pop();
             return;
         }
+        
+        creep.memory.spawnedBy=spawnName
 
         //if (!("name" in creep)) {creep["name"]=lib.createCreepName(creep);}
         creep["name"]=lib.createCreepName(creep);
 
         if (Game.spawns[spawnName].room.energyAvailable >= creep["energy"]) {
             result=spawn.spawnCreep(creep["body"],creep['name'],{"memory":
-                    _.merge(creep["memory"],{subrole:creep["subrole"],spawnedBy:spawnName,"spawnTime":Game.time})});
+                    _.merge(creep["memory"],{subrole:creep["subrole"],"spawnTime":Game.time})});
 
             if (result!=0) {
                 Game.notify("Could not spawn creep "+creep["name"]+" result "+result)
@@ -51,6 +53,17 @@ module.exports = {
             spawn.memory.creepQueue.shift();
             
             console.log(spawnName + " building "+creep["name"]+" "+spawn.memory.creepQueue.length+" left on queue");
+            if (spawn.memory.creepQueue.length>0){
+                otherSpawns=spawn.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_SPAWN && s.id !=spawn.id && !s.spawning})
+                for (let i in otherSpawns){
+                    if (spawn.memory.creepQueue.length>0){
+                        if (!"creepQueue" in otherSpawns[i].memory){
+                            otherSpawns[i].memory.creepQueue=[]
+                        }
+                        otherSpawns[i].memory.creepQueue.push(spawn.memory.creepQueue.shift());
+                    }
+                }
+            }
         }
     }
 

@@ -12,14 +12,46 @@
 // move to red flag in memory.claim.room
 function search_and_destroy(creep) {
     var hostile = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS);
+    
+    if (creep.name=="warbot-Spawn4-E9S16-5297478" || creep.name=="warbot-Spawn1-E9S16-5297478"){
+        var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
+        if (greenFlag) {
+            creep.moveTo(greenFlag.pos,{visualizePathStyle: {stroke: '#0000ff'}});
+            //return;
+        }
+    }
+    
+	if (!hostile) {
+		flags=creep.room.find(FIND_FLAGS,{filter: (flag)=> flag.room.name == creep.room.name && flag.color==COLOR_RED}); 
+		var destroyTargets=[];
+		for (flagId in flags){
+			let foundTargets=flags[flagId].pos.lookFor(LOOK_STRUCTURES);
+			if (foundTargets.length>0) {
+				destroyTargets=destroyTargets.concat(foundTargets)
+			}
+		}
+		if (destroyTargets.length>0) {
+			hostile=creep.pos.findClosestByPath(destroyTargets);
+		}
+	
+		//if (hostile && Game.time%10===0) {console.log(creep.name+"- destroy "+hostile.structureType+" - "+hostile.hits);}
+	}
+    
     if (!hostile) {
         hostile = creep.pos.findClosestByPath(FIND_HOSTILE_STRUCTURES);
     }
+
     if (!creep.memory.claim) {
         creep.memory.claim=creep.room.name;
     }
-    if (creep.hits<creep.hitsMax*0.4){
+    if (creep.hits==creep.hitsMax){
+        _.set(creep.memory,"status","battle");
+    }
+    
+    if (creep.hits<creep.hitsMax*0.6 || _.get(creep.memory,"status")=="flee"){
         creep.say("Run!")
+        _.set(creep.memory,"status","flee");
+        
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
         if (greenFlag) {
             creep.moveTo(greenFlag.pos,{visualizePathStyle: {stroke: '#0000ff'}});
@@ -31,11 +63,16 @@ function search_and_destroy(creep) {
     }
     else {
         if (creep.borderPosition()){
-            creep.moveTo(25,25)
+            creep.moveTo(25,25,{range:10})
         }
         creep.attack(hostile)
         creep.rangedAttack(hostile)
-        if (!creep.pos.isNearTo(hostile)){
+        var nearestHealer=creep.room.find(FIND_MY_CREEPS,{filter:c=>c.memory.role=="healbot"})
+        if (creep.hits<creep.hitsMax && nearestHealer && creep.pos.getRangeTo(nearestHealer)>1){
+            creep.moveTo(nearestHealer)
+            console.log("Warbot scared and runs to healbot")
+        }
+        else if (!creep.pos.isNearTo(hostile)){
             
             
             creep.moveTo(hostile, {visualizePathStyle: {stroke: '#ff0000'}});    
@@ -50,42 +87,90 @@ function search_and_destroy(creep) {
                         creep.moveTo(new RoomPosition(25, 25, creep.memory.claim),{reusePath: 20})
         }
     }
+    //if (creep.hits<hitsMax && creep.room.find(FIND_MY_CREEPS,{filter: c=> s.memory.role=="healbot"}).length>0 && creep.pos.findInRange(FIND_MY_CREEPS,1,{filter: c=> s.memory.role=="healbot"}).length==0){
+    //    creep.moveTo(greenFlag.pos,{visualizePathStyle: {stroke: '#0000ff'}});
+    //    creep.pos.findClosestByPath(FIND_MY_CREEPS,{filter: c=> s.memory.role=="healbot"})
+    //    }
+    //}
 }
 
 function heal_and_stack(creep) {
     
-    var comrade = creep.pos.findClosestByPath(FIND_MY_CREEPS,{filter: (creep => creep.hits<creep.hitsMax)});
+    creep.healPower=_.sum(creep.body,c=>c.type==HEAL)
+    
+    //console.log(creep.name+" healpower "+creep.healPower)
+    //console.log(creep.name+" healpower "+creep.healPower*HEAL_POWER)
+    
+
+    //var comrade = creep.pos.findClosestByPath(FIND_MY_CREEPS,{filter: (creep => creep.hits<creep.hitsMax)});
+	var comrade;
     if (!comrade) {
         comrade=creep.pos.findClosestByPath(FIND_MY_CREEPS,{filter: (creep => creep.memory.role=="warbot")});
     }
     
 
-    if (creep.memory.claim && creep.room.name!=creep.memory.claim && creep.hits==creep.hitsMax) {
-        creep.moveTo(new RoomPosition(10, 45, creep.memory.claim))
+    if ((creep.memory.claim && creep.room.name!=creep.memory.claim || creep.borderPosition()) && creep.hits==creep.hitsMax) {
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.claim),{range:20})
     }
     else if (comrade) {
         creep.moveTo(comrade, {visualizePathStyle: {stroke: '#ffaa00'}});
     }
     var spotToFlee=null;
-    if (creep.hits<creep.hitsMax){
+	console.log(creep.hitsMax-creep.healPower*HEAL_POWER)
+    if (creep.hits<creep.hitsMax-creep.healPower*HEAL_POWER*3+_.get(creep,"incomingHeal",0)){
         creep.say("Run!")
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 
         if (greenFlag) {
             creep.moveTo(greenFlag.pos,{visualizePathStyle: {stroke: '#0000ff'}});
         }
         else{
-            creep.moveTo(new RoomPosition(47, 34, Game.spawns.Spawn1.room.name),{visualizePathStyle: {stroke: '#ffaa00'}})
+            creep.moveTo(new RoomPosition(25, 25, creep.memory.spawnRoom),{visualizePathStyle: {stroke: '#ffaa00'},range:20})
         }
         
-        {creep.heal(creep);}
+        creep.heal(creep);
+        _.set(creep,"incomingHeal",_.get(creep,"incomingHeal",0)+creep.healParts*HEAL_POWER)
     }
-    else if (comrade) {
-        if (comrade.hits<comrade.hitsMax){
+	// if comrade is injured more that we can heal and not healed enough - we heal him
+    else if (comrade && comrade.hitsMax-comrade.hits+_.get(comrade,"incomingHeal",0)>creep.healParts*HEAL_POWER) {
+		
+        var rangeToComrade=creep.pos.getRangeTo(comrade)
+        if(rangeToComrade==1) {
+            creep.heal(target);
+            _.set(comrade,"incomingHeal",_.get(comrade,"incomingHeal",0)+creep.healParts*HEAL_POWER)
+        }
+        else if (rangeToComrade<=3){
             creep.rangedHeal(comrade);
-            creep.heal(comrade);
+            _.set(comrade,"incomingHeal",_.get(comrade,"incomingHeal",0)+creep.healParts*RANGED_HEAL_POWER)
+        }
+        
+    }
+    else {
+		nearHeal=creep.pos.findInRange(FIND_MY_CREEPS,1,{filter:c=>c.hitsMax-c.hits+_.get(c,"incomingHeal",0)>creep.healParts*HEAL_POWER}).
+			sort((c1,c2)=>(c2.hitsMax-c2.hits+_.get(c2,"incomingHeal",0))-(c1.hitsMax-c1.hits+_.get(c1,"incomingHeal",0)))
+		if (nearHeal.length>0){
+		    creep.say("n "+nearHeal[0].name)
+			creep.heal(nearHeal[0])
+			_.set(nearHeal[0],"incomingHeal",_.get(nearHeal[0],"incomingHeal",0)+creep.healParts*HEAL_POWER)
+		}
+		else{
+		
+			farHeal=creep.pos.findInRange(FIND_MY_CREEPS,3,{filter:c=>c.hits<c.hitsMax+_.get(c,"incomingHeal",0)}).
+				sort((c1,c2)=>(c2.hitsMax-c2.hits+_.get(c2,"incomingHeal",0))-(c1.hitsMax-c1.hits+_.get(c1,"incomingHeal",0)))
+			if (farHeal.length>0){
+				creep.rangedHeal(farHeal[0])
+				_.set(farHeal[0],"incomingHeal",_.get(farHeal[0],"incomingHeal",0)+creep.healParts*RANGED_HEAL_POWER)
+			}
+			else {
+			creep.heal(creep)
+			_.set(creep,"incomingHeal",_.get(creep,"incomingHeal",0)+creep.healParts*HEAL_POWER)
+			injured=creep.pos.findClosestByPath(FIND_MY_CREEPS,{filter: (creep => creep.hits<creep.hitsMax*0.8)});
+				if (injured){
+					creep.moveTo(injured)
+				}
+			}
         }
     }
-    //if (comrade) {creep.say(comrade.name)};
+
     
 }
 

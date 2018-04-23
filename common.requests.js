@@ -1,6 +1,9 @@
 require('common.constants');
 require('prototype.creep');
+require('prototype.creep.tasks');
 require('prototype.room');
+require('Traveler')
+
 _.pickBy=require('module.pickBy');
 var hash=require('module.hash')
 String.prototype.hash=function(){

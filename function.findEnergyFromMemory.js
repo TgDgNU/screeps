@@ -7,6 +7,7 @@ var findEnergyFromMemory = {
             return (false)
         }
         temp=[]
+        // upgrader
         if (creep.memory.role=="upgrader"){
             temp=_.filter(Memory.rooms[creep.room.name]["roomEnergy"],function(roomEnergyObject) {
                 return roomEnergyObject.energy>=creep.carryCapacity && roomEnergyObject.type=="linkController"}).
@@ -20,11 +21,12 @@ var findEnergyFromMemory = {
             }
         }
 
+        // everyone
         if (temp.length==0) {
             temp=_.filter(Memory.rooms[creep.room.name]["roomEnergy"],function(roomEnergyObject) {
                 return roomEnergyObject.energy>=creep.carryCapacity &&
 				((roomEnergyObject.type=="storage" && creep.memory.useStorage) ||
-					(roomEnergyObject.type=="storage" && roomEnergyObject.energy>1000000) ||
+					(roomEnergyObject.type=="storage" && roomEnergyObject.energy>100000) ||
 					(roomEnergyObject.type=="container" && roomEnergyObject.subType!="containerController") ||
 					roomEnergyObject.type=="droppedEnergy")}).
                 map( roomEnergyObject=> Game.getObjectById(roomEnergyObject.id)).filter(item=>item);

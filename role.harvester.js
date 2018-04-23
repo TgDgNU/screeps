@@ -21,7 +21,7 @@ var roleHarvester = {
             return
         }
         if (creep.room.energyAvailable==creep.room.energyCapacityAvailable){
-            //console.log("creep урфгдштп "+creep.room.name)
+            //console.log("creep ÑÑÑÐ³Ð´ÑÑÐ¿ "+creep.room.name)
             //roleEnergyHauler.run(creep)
             //return;
         }

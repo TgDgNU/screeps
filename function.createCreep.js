@@ -64,7 +64,7 @@ module.exports = {
         partsArray["miner"]={"base":[WORK,WORK,MOVE,CARRY],"add":[WORK,WORK,MOVE]};
         
         // harvester
-        partsArray["harvester"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE]};
+        partsArray["harvester"]={"base":[WORK,CARRY,MOVE,CARRY,MOVE],"add":[WORK,CARRY,MOVE]};
         if (optimalEnergyForBuild>=500) {
             partsArray["harvester"]={"base":[WORK,CARRY,MOVE],"add":[CARRY,CARRY,MOVE]};
            }
@@ -73,6 +73,9 @@ module.exports = {
         }
         
         //builder
+        if (optimalEnergyForBuild<500) {
+            partsArray["builder"]={"base":[WORK,CARRY,MOVE,CARRY,MOVE],"add":[WORK,CARRY,MOVE]};
+           }
         partsArray["builder"]={"base":[CARRY,WORK,MOVE],"add":[CARRY,WORK,MOVE,CARRY,CARRY,MOVE]};
         if (optimalEnergyForBuild>=600) {
             partsArray["builder"]={"base":[WORK,CARRY,MOVE],"add":[CARRY,WORK,MOVE,CARRY,CARRY,MOVE]};

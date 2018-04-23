@@ -235,7 +235,7 @@ Room.prototype.processRoomEnergy=function(){
                 if (creep.memory.energySourceId in roomEnergy){
                     roomEnergy[creep.memory.energySourceId].energy-=creep.carryCapacity - creep.carry.energy;
                 }
-                else{
+                else if (Game.time> 5486019+20000){
                     console.log(creep.name+" error in room - process energy - line 156")
                 }
 

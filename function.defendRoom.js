@@ -116,7 +116,7 @@ function heal_and_stack(creep) {
         creep.moveTo(comrade, {visualizePathStyle: {stroke: '#ffaa00'}});
     }
     var spotToFlee=null;
-	console.log(creep.hitsMax-creep.healPower*HEAL_POWER)
+	//console.log(creep.hitsMax-creep.healPower*HEAL_POWER)
     if (creep.hits<creep.hitsMax-creep.healPower*HEAL_POWER*3+_.get(creep,"incomingHeal",0)){
         creep.say("Run!")
         var greenFlag= creep.pos.findClosestByPath(FIND_FLAGS,{filter:(f)=>f.color==COLOR_GREEN}) 

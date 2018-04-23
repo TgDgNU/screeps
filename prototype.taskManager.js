@@ -2,6 +2,8 @@ var lib=require('function.libraries');
 var debug=0;
 
 var TaskManager=function(base){
+    this.debug=false
+    
     this.base=base
     this.taskQueue=this.base.memory.taskQueue|| []
     
@@ -57,9 +59,11 @@ TaskManager.prototype.abandonTask=function(creep,task){
 TaskManager.prototype.emptyStore=function(creep){
     console.log("taskmanager start emptystore "+this.base.name)
     
-    harvesters=_.filter(Game.creeps,c=>_.get(c.memory,"baseName")==this.base.name && _.get(c.memory,"role")=="harvester" && _.get(c.memory,"tasks").length==0 )
-    console.log(harvesters.length)
-    console.log(this.base.name)
+    harvesters=_.filter(Game.creeps,c=>_.get(c.memory,"baseRoom")==this.base.name && _.get(c.memory,"role")=="harvester" && _.get(c.memory,"tasks").length==0 )
+    if (harvesters.length==0){
+        console.log("<font color=red>"+this.base.name+" can't find free harvesters for store overhaul </font>")
+    }
+    
     
     for (creep of harvesters){
         console.log(creep.name)

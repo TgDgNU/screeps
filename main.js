@@ -67,55 +67,55 @@ module.exports.loop = function () {
     for (let room of _.filter(Game.rooms, r=>_.get(r,"controller.my",false))){
         _.set(director,"bases."+room.name,new Base(director,room.name))
     }
-	
-	if (Game.time%10==0){
-		for (base of _.values(director.bases)){
-			if (base.totalEnergy<15000 && base.terminal) {
-				console.log(base.name +"needs help")
-				//console.log(TERMINAL_MIN_ENERGY_TO_USE_IT)
-				var terminalsArr=_.filter(Game.structures, s=>s.structureType==STRUCTURE_TERMINAL && s.store.energy>20000).sort((t1,t2)=>Game.market.calcTransactionCost(1,t1.room.name,base.name)-Game.market.calcTransactionCost(1,t2.room.name,base.name))
-				
-				if (terminalsArr.length>0 && terminalsArr[0].cooldown==0){
-					Game.notify("Send energy from "+terminalsArr[0].room.name+" to "+base.name+ "lost "+Game.market.calcTransactionCost(10000,terminalsArr[0].room.name,base.name))
-					console.log("Send energy from "+terminalsArr[0].room.name+" to "+base.name+ "lost "+Game.market.calcTransactionCost(10000,terminalsArr[0].room.name,base.name))
-					terminalsArr[0].send(RESOURCE_ENERGY,5000,base.name)
-					
-				}
-				else {
-				    console.log("Noone can help it now")
-				}
-			}
-		}
-	}
+    
+    if (Game.time%10==0){
+        for (base of _.values(director.bases)){
+            if (base.totalEnergy<15000 && base.terminal) {
+                console.log(base.name +"needs help")
+                //console.log(TERMINAL_MIN_ENERGY_TO_USE_IT)
+                var terminalsArr=_.filter(Game.structures, s=>s.structureType==STRUCTURE_TERMINAL && s.store.energy>20000).sort((t1,t2)=>Game.market.calcTransactionCost(1,t1.room.name,base.name)-Game.market.calcTransactionCost(1,t2.room.name,base.name))
+                
+                if (terminalsArr.length>0 && terminalsArr[0].cooldown==0){
+                    Game.notify("Send energy from "+terminalsArr[0].room.name+" to "+base.name+ "lost "+Game.market.calcTransactionCost(10000,terminalsArr[0].room.name,base.name))
+                    console.log("Send energy from "+terminalsArr[0].room.name+" to "+base.name+ "lost "+Game.market.calcTransactionCost(10000,terminalsArr[0].room.name,base.name))
+                    terminalsArr[0].send(RESOURCE_ENERGY,5000,base.name)
+                    
+                }
+                else {
+                    console.log("Noone can help it now")
+                }
+            }
+        }
+    }
     //console.log(JSON.stringify(world))
     
 /*    
 if (Game.time%300==0){
 
-		flags=Game.rooms["E9S16"].find(FIND_FLAGS,{filter: (flag)=> flag.color==COLOR_RED}); 
-		var destroyTargets=[];
-		for (flagId in flags){
-			let foundTargets=flags[flagId].pos.lookFor(LOOK_STRUCTURES);
-			if (foundTargets.length>0) {
-				destroyTargets=destroyTargets.concat(foundTargets);
-			}
-		}
+        flags=Game.rooms["E9S16"].find(FIND_FLAGS,{filter: (flag)=> flag.color==COLOR_RED}); 
+        var destroyTargets=[];
+        for (flagId in flags){
+            let foundTargets=flags[flagId].pos.lookFor(LOOK_STRUCTURES);
+            if (foundTargets.length>0) {
+                destroyTargets=destroyTargets.concat(foundTargets);
+            }
+        }
 
-	if (destroyTargets.length>0 && _.filter(Game.creeps,c=>c.memory.role=="warbot" && c.memory.claim=="E9S16").length<2){
-		Game.createCreep("E8S18","warbot",{priority:100,cost:3320,memory:{claim:"E9S16"}})
-		Game.notify("Spawed wrekbot "+destroyTargets[0].hits+" left to wreck")
-		console.log("<font color=red>Spawed wrekbot "+destroyTargets[0].hits+" left to wreck</font>")
-	}
+    if (destroyTargets.length>0 && _.filter(Game.creeps,c=>c.memory.role=="warbot" && c.memory.claim=="E9S16").length<2){
+        Game.createCreep("E8S18","warbot",{priority:100,cost:3320,memory:{claim:"E9S16"}})
+        Game.notify("Spawed wrekbot "+destroyTargets[0].hits+" left to wreck")
+        console.log("<font color=red>Spawed wrekbot "+destroyTargets[0].hits+" left to wreck</font>")
+    }
 }
   */
   
   
     //console.log(Game.rooms["E2S19"].getStoredEnergy())
-	//var E2S19TaskQueue=new TaskManager(Game.rooms["E2S19"])
-	//console.log(JSON.stringify(E2S19TaskQueue))
-	//E2S19TaskQueue.createTask("spawnCreep",100,{})
-	
-	
+    //var E2S19TaskQueue=new TaskManager(Game.rooms["E2S19"])
+    //console.log(JSON.stringify(E2S19TaskQueue))
+    //E2S19TaskQueue.createTask("spawnCreep",100,{})
+    
+    
     global.rooms={}
     for (let roomName in Game.rooms){
         rooms[roomName]={}
@@ -127,54 +127,21 @@ if (Game.time%300==0){
 
     if (Game.time%10===0){
         terminalsArr=_.filter(Game.structures, {structureType:STRUCTURE_TERMINAL})
-		var bestPriceDict={}
+        var bestPriceDict={}
 
-		bestPriceDict[RESOURCE_ENERGY]=0.03
-		//bestPriceDict["O"]=0.160
+        bestPriceDict[RESOURCE_ENERGY]=0.03
+        //bestPriceDict["O"]=0.160
         for (id in terminalsArr){
-			terminal=terminalsArr[id]
-			for (resourceType in terminal.store) {
-				if (terminal.store[resourceType]>TERMINAL_MIN_RESOURCE && terminal.store[RESOURCE_ENERGY]>TERMINAL_MIN_ENERGY_TO_USE_IT){
-					bestPrice=_.get(bestPriceDict,resourceType,DEFAULT_BEST_PRICE)
-					if (resourceType==RESOURCE_ENERGY) {
-						var bestOrderA=Game.market.getAllOrders(order => order.resourceType == resourceType && order.type == ORDER_BUY && order.amount>500).
-							sort((o1,o2)=>1000*o2.price/(1000+Game.market.calcTransactionCost(1000, terminal.room.name, o2.roomName))-1000*o1.price/(1000+Game.market.calcTransactionCost(1000, terminal.room.name, o1.roomName)))
-						//
-						}
-					else {
-						var bestOrderA=Game.market.getAllOrders(order => order.resourceType == resourceType && order.type == ORDER_BUY && order.amount>500).
-							sort((o1,o2)=>(o2.price-Game.market.calcTransactionCost(1, terminal.room.name, o2.roomName)*bestPriceDict[RESOURCE_ENERGY])-(o1.price-Game.market.calcTransactionCost(1, terminal.room.name, o1.roomName)*bestPriceDict[RESOURCE_ENERGY]))
-						
-					}
-					if (bestOrderA.length>0){
-						var bestOrder=bestOrderA[0]
-						if (resourceType==RESOURCE_ENERGY){
-							var realPrice=1000*bestOrder.price/(1000+Game.market.calcTransactionCost(1000, terminal.room.name, bestOrder.roomName))
-						}
-						else{
-							var realPrice=bestOrder.price-Game.market.calcTransactionCost(1, terminal.room.name, bestOrder.roomName)*bestPriceDict[RESOURCE_ENERGY]
-						}
-						if ((realPrice>bestPrice ||  _.sum(terminal.store)>TERMINAL_MAX_STORE) && (resourceType==RESOURCE_ENERGY || realPrice>MINIMAL_MINERAL_PRICE)) {
-							let amount=Math.min(10000,bestOrder["amount"])
-							result="test"
-						   // result=Game.market.deal(bestOrder.id,amount,terminal.room.name)
-							
-							Game.notify("Deal "+resourceType+" "+bestOrder.price+" "+amount+" room "+terminal.room.name+" energy loss "+Game.market.calcTransactionCost(1000, terminal.room.name, bestOrder.roomName )+" real price "+realPrice+" result "+result)
-							console.log("Deal "+resourceType+" "+bestOrder.price+" "+amount+" room "+terminal.room.name+" energy loss "+Game.market.calcTransactionCost(1000, terminal.room.name, bestOrder.roomName )+" real price "+realPrice+" result "+result)
-							console.log(_.sum(terminal.store))
+            terminal=terminalsArr[id]
 
-						}
-					}
-				}
-			}
         }
     }
 
 
 
-	
-	
-	
+    
+    
+    
     if (Game.time%3===0){
         if (!("containers" in Memory)){
             Memory.containers={}
@@ -295,7 +262,14 @@ if ((Game.time % 600) === 0) {
                 }
 
             }
-            else {
+            else if (_.sum(Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES),site=>site.progressTotal-site.progress)>7000){
+                Game.notify("<font color=green>Spawning additional builder for room "+roomName+"</font>")
+                console.log("<font color=green>Spawning additional builder for room "+roomName+"</font>")
+                createCreep.run(roomName,"builder",{"cost":1200});
+                createCreep.run(roomName,"builder",{"cost":1200});
+            }
+                
+            else{
                 Game.notify("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
                 console.log("<font color=green>Spawning additional upgrader for room "+roomName+"</font>")
                 createCreep.run(roomName,"upgrader",{"cost":1200});
@@ -457,9 +431,9 @@ function createGameNotification(){
     notification.push("");
     var room;
     var creep;
-	myRoomsArr=_.filter(Game.rooms,r=>r.controller && r.controller.my)
+    myRoomsArr=_.filter(Game.rooms,r=>r.controller && r.controller.my)
     for (i in myRoomsArr){
-		room=myRoomsArr[i]
+        room=myRoomsArr[i]
         notification[notification.length-1]+="\nRoom "+room.name+" CL "+room.controller.level;
         notification[notification.length-1]+="\nMax Energy "+room.energyCapacityAvailable;
         ramparts=room.find(FIND_STRUCTURES,{filter:s=> s.structureType==STRUCTURE_WALL || s.structureType==STRUCTURE_RAMPART}).sort((s1,s2)=>s1.hits-s2.hits)
@@ -474,17 +448,17 @@ function createGameNotification(){
         }
 
         let controllerDelta=room.controller.progress-_.get(room,"memory.progress.controller",0);
-		let currentEnergy=room.getStoredEnergy()
-		let storageDelta=currentEnergy-_.get(room,"memory.progress.energy",0);
-		
+        let currentEnergy=room.getStoredEnergy()
+        let storageDelta=currentEnergy-_.get(room,"memory.progress.energy",0);
+        
         if (room.controller.level<8){
             notification[notification.length-1]+="\nController progress "+Math.floor(room.controller.progress/room.controller.progressTotal*1000)/10+"% delta "+controllerDelta;
         }
         notification[notification.length-1]+="\nStorage "+currentEnergy+" delta "+storageDelta;
-		
+        
         _.set(room,"memory.progress.controller",room.controller.progress);
-		_.set(room,"memory.progress.energy",currentEnergy);
-		
+        _.set(room,"memory.progress.energy",currentEnergy);
+        
         notification.push("")
     }
     return (notification);

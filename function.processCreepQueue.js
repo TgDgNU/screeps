@@ -3,7 +3,10 @@ var lib=require('function.libraries');
 
 module.exports = {
     run(spawnName){
+        
+        var debug=false;
         var spawn=Game.spawns[spawnName];
+        
         if (!Game.spawns[spawnName].memory.creepQueue){
             Game.spawns[spawnName].memory.creepQueue=[]
         }
@@ -52,7 +55,9 @@ module.exports = {
             }
             spawn.memory.creepQueue.shift();
             
-            console.log(spawnName + " building "+creep["name"]+" "+spawn.memory.creepQueue.length+" left on queue");
+            if (debug){
+                console.log(spawnName + " building "+creep["name"]+" "+spawn.memory.creepQueue.length+" left on queue");
+            }
             if (spawn.memory.creepQueue.length>0){
                 otherSpawns=spawn.room.find(FIND_MY_STRUCTURES,{filter:s=>s.structureType==STRUCTURE_SPAWN && s.id !=spawn.id && !s.spawning})
                 for (let i in otherSpawns){
